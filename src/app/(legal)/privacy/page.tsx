@@ -1,3 +1,4 @@
+"use client"; 
 import { ShieldCheck, Lock, EyeOff, Share2 } from 'lucide-react';
 
 export default function PrivacyPage() {

@@ -1,3 +1,4 @@
+"use client"; 
 import { Scale, AlertCircle } from 'lucide-react';
 
 export default function AgreementPage() {

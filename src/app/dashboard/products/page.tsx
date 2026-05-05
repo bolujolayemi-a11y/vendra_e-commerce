@@ -135,7 +135,7 @@ export default function AddProduct() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
           <div className="space-y-4">
             <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Product Name</label>
-            <input required className="w-full p-6 bg-white border border-gray-100 rounded-[1.5rem] text-sm font-bold outline-none focus:ring-4 focus:ring-black/5" placeholder="e.g. Silk Material" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} />
+            <input required className="w-full p-6 bg-white border border-gray-100 rounded-[1.5rem] text-sm font-bold outline-none focus:ring-4 focus:ring-black/5" placeholder="Add Product Name" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} />
           </div>
 
           <div className="space-y-4">

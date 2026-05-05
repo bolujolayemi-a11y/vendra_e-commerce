@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { 
   MessageCircle, Loader2, Store, Plus, Minus, 
   X, Send, ArrowRight, ShoppingBag, ChevronRight, 
-  Tag, Sparkles 
+  Tag, Sparkles, Clock, LayoutGrid 
 } from 'lucide-react';
 
 export default function PublicStore() {
@@ -26,7 +26,11 @@ export default function PublicStore() {
       const { data: storeData } = await supabase.from('stores').select('*').eq('slug', slug).single();
       if (storeData) {
         setStore(storeData);
-        const { data: productsData } = await supabase.from('products').select('*').eq('store_id', storeData.id).order('created_at', { ascending: false });
+        const { data: productsData } = await supabase
+          .from('products')
+          .select('*')
+          .eq('store_id', storeData.id)
+          .order('created_at', { ascending: false }); // Newest first
         setProducts(productsData || []);
       }
       setLoading(false);
@@ -34,9 +38,19 @@ export default function PublicStore() {
     fetchStorefront();
   }, [slug]);
 
-  // Derived collections
-  const featuredProducts = products.filter(p => p.stock_count > 5).slice(0, 6);
-  const clearanceProducts = products.filter(p => p.stock_count <= 5 && !p.is_sold_out);
+  // --- REVISED LOGIC FOR YOUR WORKFLOW ---
+
+  // 1. Manual Clearance: Only items you explicitly marked
+  const clearanceProducts = products.filter(p => p.is_clearance === true);
+
+  // Filter out clearance items for the other sections so they don't double-show
+  const nonClearanceProducts = products.filter(p => !p.is_clearance);
+
+  // 2. New Arrivals: The 4 most recently added non-clearance items
+  const newArrivals = nonClearanceProducts.slice(0, 4);
+
+  // 3. General Stock: Everything else left over
+  const generalProducts = nonClearanceProducts.slice(4);
 
   const addToCart = (product: any) => {
     setCart(prev => {
@@ -66,53 +80,73 @@ export default function PublicStore() {
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-white"><Loader2 className="animate-spin text-black" size={32} /></div>;
 
   return (
-    <div className="min-h-screen bg-white text-black selection:bg-black selection:text-white">
+    <div className="min-h-screen bg-white text-black selection:bg-black selection:text-white pb-40">
       
-      {/* 1. MINIMALIST BLANK HERO */}
+      {/* 1. HERO SECTION */}
       <header className="pt-32 pb-20 px-6 text-center border-b border-gray-50">
         <div className="max-w-4xl mx-auto space-y-6">
             <h1 className="text-7xl md:text-9xl font-black uppercase tracking-tighter leading-none">
                 {store?.name}
             </h1>
             <p className="text-gray-400 font-bold uppercase text-[10px] tracking-[0.5em]">
-                {store?.description || "Curated Essentials • Limited Edition"}
+                {store?.description || "High-End Fabrics • Curated Selection"}
             </p>
         </div>
       </header>
 
-      {/* 2. FEATURED PRODUCTS SECTION */}
-      <section className="max-w-7xl mx-auto px-6 py-24">
-        <div className="flex items-center gap-4 mb-12">
-            <Sparkles size={20} />
-            <h2 className="text-2xl font-black uppercase tracking-tighter">Featured Arrivals</h2>
-            <div className="h-[1px] flex-1 bg-gray-100"></div>
-        </div>
+      {/* 2. NEW ARRIVALS (Automatic Top 4) */}
+      {newArrivals.length > 0 && (
+        <section className="max-w-7xl mx-auto px-6 py-24">
+          <div className="flex items-center gap-4 mb-12">
+              <Clock size={20} className="text-blue-500" />
+              <h2 className="text-2xl font-black uppercase tracking-tighter">New Arrivals</h2>
+              <div className="h-[1px] flex-1 bg-gray-100"></div>
+          </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-16">
-          {featuredProducts.map((product) => (
-            <ProductCard key={product.id} product={product} cart={cart} addToCart={addToCart} removeFromCart={removeFromCart} setBubbleMessage={setBubbleMessage} setIsBubbleOpen={setIsBubbleOpen} />
-          ))}
-        </div>
-      </section>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12">
+            {newArrivals.map((product) => (
+              <ProductCard key={product.id} product={product} cart={cart} addToCart={addToCart} removeFromCart={removeFromCart} setBubbleMessage={setBubbleMessage} setIsBubbleOpen={setIsBubbleOpen} />
+            ))}
+          </div>
+        </section>
+      )}
 
-      {/* 3. CLEARANCE SECTION (Distinct Style) */}
-      <section className="bg-gray-50 py-24 px-6 border-y border-gray-100">
-        <div className="max-w-7xl mx-auto">
-            <div className="flex items-center gap-4 mb-12">
-                <Tag size={20} className="text-red-500" />
-                <h2 className="text-2xl font-black uppercase tracking-tighter text-red-500">Last Chance / Clearance</h2>
-                <div className="h-[1px] flex-1 bg-gray-200"></div>
-            </div>
+      {/* 3. CLEARANCE SECTION (Manual Only) */}
+      {clearanceProducts.length > 0 && (
+        <section className="bg-red-50/30 py-24 px-6 border-y border-red-100">
+          <div className="max-w-7xl mx-auto">
+              <div className="flex items-center gap-4 mb-12">
+                  <Tag size={20} className="text-red-500" />
+                  <h2 className="text-2xl font-black uppercase tracking-tighter text-red-500">Clearance Sale</h2>
+                  <div className="h-[1px] flex-1 bg-red-100"></div>
+              </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                {clearanceProducts.map((product) => (
-                    <ProductCard key={product.id} product={product} cart={cart} addToCart={addToCart} removeFromCart={removeFromCart} setBubbleMessage={setBubbleMessage} setIsBubbleOpen={setIsBubbleOpen} isSmall />
-                ))}
-            </div>
-        </div>
-      </section>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                  {clearanceProducts.map((product) => (
+                      <ProductCard key={product.id} product={product} cart={cart} addToCart={addToCart} removeFromCart={removeFromCart} setBubbleMessage={setBubbleMessage} setIsBubbleOpen={setIsBubbleOpen} isSmall />
+                  ))}
+              </div>
+          </div>
+        </section>
+      )}
 
-      {/* 4. FLOATING CART BAR */}
+      {/* 4. GENERAL STOCK (The rest of your items) */}
+      {generalProducts.length > 0 && (
+        <section className="max-w-7xl mx-auto px-6 py-24">
+          <div className="flex items-center gap-4 mb-12">
+              <LayoutGrid size={20} className="text-gray-300" />
+              <h2 className="text-2xl font-black uppercase tracking-tighter text-gray-300">General Stock</h2>
+              <div className="h-[1px] flex-1 bg-gray-50"></div>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-16">
+              {generalProducts.map((product) => (
+                  <ProductCard key={product.id} product={product} cart={cart} addToCart={addToCart} removeFromCart={removeFromCart} setBubbleMessage={setBubbleMessage} setIsBubbleOpen={setIsBubbleOpen} isSmall />
+              ))}
+          </div>
+        </section>
+      )}
+
+      {/* 5. FLOATING CART BAR */}
       {totalItems > 0 && (
         <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[90] w-[90%] max-w-lg">
           <div className="bg-black text-white p-5 rounded-full shadow-2xl flex items-center justify-between border border-white/10">
@@ -162,8 +196,8 @@ export default function PublicStore() {
         </button>
       </div>
 
-      <footer className="py-20 text-center border-t border-gray-50 opacity-20">
-        <p className="text-[10px] font-black uppercase tracking-[1em]">Vendra Commerce</p>
+      <footer className="py-20 text-center border-t border-gray-50">
+        <p className="text-[10px] font-black uppercase tracking-[1em] text-gray-200">Vendra &bull; Made in Nigeria</p>
       </footer>
     </div>
   );
@@ -178,7 +212,7 @@ function ProductCard({ product, cart, addToCart, removeFromCart, setBubbleMessag
       <div className={`${isSmall ? 'aspect-square' : 'aspect-[4/5]'} bg-gray-50 rounded-[2.5rem] overflow-hidden mb-6 relative border border-gray-50`}>
         <img src={product.image_url} alt={product.name} className="w-full h-full object-cover transition duration-1000 group-hover:scale-110" />
         {product.is_sold_out && (
-            <div className="absolute inset-0 bg-white/60 backdrop-blur-sm flex items-center justify-center font-black uppercase text-[10px] tracking-widest">This item is sold out</div>
+            <div className="absolute inset-0 bg-white/60 backdrop-blur-sm flex items-center justify-center font-black uppercase text-[10px] tracking-widest text-black">Sold Out</div>
         )}
       </div>
       

@@ -6,7 +6,8 @@ import {
   ShieldCheck, 
   Smartphone, 
   ArrowRight, 
-  Store 
+  Store,
+  User // Added this just in case it was referenced
 } from 'lucide-react';
 
 export default function Home() {

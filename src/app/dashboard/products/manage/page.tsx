@@ -225,7 +225,7 @@ export default function ManageProducts() {
         className="fixed bottom-10 left-1/2 -translate-x-1/2 bg-black text-white px-10 py-6 rounded-full font-black uppercase text-[10px] tracking-[0.3em] shadow-[0_20px_50px_rgba(0,0,0,0.3)] hover:scale-105 active:scale-95 transition-all z-[100] flex items-center gap-3 group"
       >
         <Plus size={18} className="group-hover:rotate-90 transition-transform duration-300" /> 
-        Add New Fabric
+        Add New Item
       </Link>
     </div>
   );

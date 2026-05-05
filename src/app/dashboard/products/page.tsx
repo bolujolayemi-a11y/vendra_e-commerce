@@ -194,11 +194,11 @@ export default function AddProduct() {
 
         <div className="space-y-4">
           <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Description</label>
-          <textarea rows={4} className="w-full p-6 bg-white border border-gray-100 rounded-[2rem] text-sm font-bold outline-none resize-none focus:ring-4 focus:ring-black/5" placeholder="Story of this fabric..." value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} />
+          <textarea rows={4} className="w-full p-6 bg-white border border-gray-100 rounded-[2rem] text-sm font-bold outline-none resize-none focus:ring-4 focus:ring-black/5" placeholder="Add the product description..." value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} />
         </div>
 
         <button disabled={loading} className="w-full bg-black text-white py-8 rounded-[2rem] font-black text-[11px] uppercase tracking-widest hover:bg-gray-800 transition-all flex items-center justify-center gap-3 shadow-2xl active:scale-95 disabled:bg-gray-200">
-          {loading ? <Loader2 className="animate-spin" /> : <><PackagePlus size={18}/> Publish to Store</>}
+          {loading ? <Loader2 className="animate-spin" /> : <><PackagePlus size={18}/> Add to Store</>}
         </button>
       </form>
     </div>

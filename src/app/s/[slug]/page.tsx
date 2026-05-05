@@ -39,30 +39,29 @@ export default function PublicStore() {
     fetchStorefront();
   }, [slug]);
 
-  // Sections Logic
+  // Logic for Sections
   const clearanceProducts = products.filter(p => p.is_clearance === true);
   const nonClearanceProducts = products.filter(p => !p.is_clearance);
   const newArrivals = nonClearanceProducts.slice(0, 4);
   const generalProducts = nonClearanceProducts.slice(4);
 
-  // --- IMPROVED SHARE FUNCTION ---
+  // --- SHARE FUNCTION ---
   const handleShare = async () => {
-    // This will now use vendra.name.ng automatically
-    const shareUrl = window.location.href; 
     const shareData = {
-      title: store?.name || 'Vendra Boutique',
-      text: `Check out ${store?.name} on Vendra!`,
-      url: shareUrl,
+      title: store?.name || 'Vendra Store',
+      text: `Check out ${store?.name} on Vendra! High-quality fabrics and materials.`,
+      url: window.location.href,
     };
 
     if (navigator.share) {
       try {
         await navigator.share(shareData);
       } catch (err) {
-        console.log("Native share canceled");
+        console.log("Share failed");
       }
     } else {
-      navigator.clipboard.writeText(shareUrl);
+      // Fallback: Copy to clipboard
+      navigator.clipboard.writeText(window.location.href);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
@@ -100,12 +99,12 @@ export default function PublicStore() {
       
       {/* 1. HERO SECTION */}
       <header className="pt-32 pb-20 px-6 text-center border-b border-gray-50 relative">
-        {/* SHARE BUTTON */}
+        {/* SHARE ACTION */}
         <button 
           onClick={handleShare}
-          className="absolute top-10 right-6 md:right-12 flex items-center gap-2 bg-gray-50 border border-gray-100 px-5 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-black hover:text-white transition-all active:scale-95 shadow-sm z-10"
+          className="absolute top-10 right-6 md:right-12 flex items-center gap-2 bg-gray-50 border border-gray-100 px-5 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-black hover:text-white transition-all active:scale-95 shadow-sm"
         >
-          <Share2 size={14} /> {copied ? "Copied Link!" : "Share Store"}
+          <Share2 size={14} /> {copied ? "Copied!" : "Share Store"}
         </button>
 
         <div className="max-w-4xl mx-auto space-y-6">
@@ -126,6 +125,7 @@ export default function PublicStore() {
               <h2 className="text-2xl font-black uppercase tracking-tighter">New Arrivals</h2>
               <div className="h-[1px] flex-1 bg-gray-100"></div>
           </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12">
             {newArrivals.map((product) => (
               <ProductCard key={product.id} product={product} cart={cart} addToCart={addToCart} removeFromCart={removeFromCart} setBubbleMessage={setBubbleMessage} setIsBubbleOpen={setIsBubbleOpen} />
@@ -143,6 +143,7 @@ export default function PublicStore() {
                   <h2 className="text-2xl font-black uppercase tracking-tighter text-red-500">Clearance Sale</h2>
                   <div className="h-[1px] flex-1 bg-red-100"></div>
               </div>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
                   {clearanceProducts.map((product) => (
                       <ProductCard key={product.id} product={product} cart={cart} addToCart={addToCart} removeFromCart={removeFromCart} setBubbleMessage={setBubbleMessage} setIsBubbleOpen={setIsBubbleOpen} isSmall />
@@ -168,7 +169,7 @@ export default function PublicStore() {
         </section>
       )}
 
-      {/* 5. FLOATING CART */}
+      {/* 5. FLOATING CART BAR */}
       {totalItems > 0 && (
         <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[90] w-[90%] max-w-lg">
           <div className="bg-black text-white p-5 rounded-full shadow-2xl flex items-center justify-between border border-white/10">
@@ -190,7 +191,7 @@ export default function PublicStore() {
         </div>
       )}
 
-      {/* WHATSAPP CONCIERGE */}
+      {/* WHATSAPP BUBBLE */}
       <div className="fixed bottom-8 right-8 z-[100]">
         {isBubbleOpen && (
           <div className="absolute bottom-20 right-0 w-80 bg-white rounded-[2.5rem] shadow-2xl border border-gray-100 overflow-hidden animate-in fade-in zoom-in duration-300 origin-bottom-right">
@@ -218,8 +219,8 @@ export default function PublicStore() {
         </button>
       </div>
 
-      <footer className="py-20 text-center border-t border-gray-100">
-        <p className="text-[10px] font-black uppercase tracking-[1em] text-gray-200">Vendra &bull; Boutique Experience</p>
+      <footer className="py-20 text-center border-t border-gray-50">
+        <p className="text-[10px] font-black uppercase tracking-[1em] text-gray-200">Vendra &bull; Made in Nigeria</p>
       </footer>
     </div>
   );
@@ -227,6 +228,7 @@ export default function PublicStore() {
 
 function ProductCard({ product, cart, addToCart, removeFromCart, setBubbleMessage, setIsBubbleOpen, isSmall = false }: any) {
   const quantityInCart = cart[product.id]?.quantity || 0;
+
   return (
     <div className="group flex flex-col h-full bg-white">
       <div className={`${isSmall ? 'aspect-square' : 'aspect-[4/5]'} bg-gray-50 rounded-[2.5rem] overflow-hidden mb-6 relative border border-gray-50`}>
@@ -235,9 +237,11 @@ function ProductCard({ product, cart, addToCart, removeFromCart, setBubbleMessag
             <div className="absolute inset-0 bg-white/60 backdrop-blur-sm flex items-center justify-center font-black uppercase text-[10px] tracking-widest text-black">Sold Out</div>
         )}
       </div>
+      
       <div className="px-2">
         <h3 className={`${isSmall ? 'text-lg' : 'text-2xl'} font-black uppercase tracking-tighter mb-1 leading-none`}>{product.name}</h3>
         <p className="font-black text-gray-400 mb-6">₦{product.price.toLocaleString()}</p>
+        
         {!product.is_sold_out && (
           <div className="mt-auto space-y-3"> 
             {quantityInCart > 0 ? (
@@ -247,11 +251,21 @@ function ProductCard({ product, cart, addToCart, removeFromCart, setBubbleMessag
                 <button onClick={() => addToCart(product)} className="w-10 h-10 flex items-center justify-center hover:bg-white/10 rounded-xl transition"><Plus size={16} /></button>
               </div>
             ) : (
-              <button onClick={() => addToCart(product)} className="w-full py-5 rounded-2xl font-black text-[10px] uppercase tracking-widest bg-gray-50 text-black hover:bg-black hover:text-white transition-all flex items-center justify-center gap-2">
+              <button 
+                onClick={() => addToCart(product)}
+                className="w-full py-5 rounded-2xl font-black text-[10px] uppercase tracking-widest bg-gray-50 text-black hover:bg-black hover:text-white transition-all flex items-center justify-center gap-2"
+              >
                 Add to cart <Plus size={14} />
               </button>
             )}
-            <button onClick={() => { setBubbleMessage(`Hi! I'm interested in ${product.name}. Is it available?`); setIsBubbleOpen(true); }} className="w-full py-2 text-[9px] font-black uppercase tracking-widest text-gray-300 hover:text-black transition-colors">
+            
+            <button 
+              onClick={() => {
+                setBubbleMessage(`Hi! I'm interested in ${product.name}. Is it available?`);
+                setIsBubbleOpen(true);
+              }}
+              className="w-full py-2 text-[9px] font-black uppercase tracking-widest text-gray-300 hover:text-black transition-colors"
+            >
               Inquiry
             </button>
           </div>

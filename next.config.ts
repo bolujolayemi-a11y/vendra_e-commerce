@@ -1,15 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   typescript: {
-    ignoreBuildErrors: true,
+    // Keep this if you want to skip type checks for faster deploys
+    ignoreBuildErrors: true, 
   },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-  // This helps with the 'useSearchParams' bailout issue
-  experimental: {
-    missingSuspenseWithCSRBailout: false,
-  },
+  // Remove the eslint and experimental keys that caused the warnings
 };
 
 export default nextConfig;

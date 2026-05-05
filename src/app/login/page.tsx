@@ -1,18 +1,19 @@
 "use client";
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react'; // Added Suspense
 import { supabase } from '@/lib/supabase';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Mail, Lock, Loader2, ChevronLeft, Eye, EyeOff } from 'lucide-react'; // Added Eye icons
+import { Mail, Lock, Loader2, ChevronLeft, Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
 
-export default function Login() {
+// 1. Move all the logic into a Content component
+function LoginContent() {
   const searchParams = useSearchParams();
   const mode = searchParams.get('mode') || 'login'; 
   
   const [isLoginView, setIsLoginView] = useState(mode === 'login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false); // Added showPassword state
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
@@ -36,7 +37,7 @@ export default function Login() {
         email, 
         password,
         options: {
-          emailRedirectTo: `https://vendra.shop/onboarding`,
+          emailRedirectTo: `${window.location.origin}/onboarding`,
         }
       });
       
@@ -70,12 +71,14 @@ export default function Login() {
 
         <div className="flex bg-gray-100 p-1.5 rounded-2xl mb-8">
             <button 
+                type="button"
                 onClick={() => setIsLoginView(true)}
                 className={`flex-1 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${isLoginView ? 'bg-white text-black shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
             >
                 Login
             </button>
             <button 
+                type="button"
                 onClick={() => setIsLoginView(false)}
                 className={`flex-1 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${!isLoginView ? 'bg-white text-black shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
             >
@@ -104,12 +107,11 @@ export default function Login() {
               <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" size={18} />
               <input 
                 required
-                type={showPassword ? "text" : "password"} // Dynamic type
+                type={showPassword ? "text" : "password"} 
                 placeholder="••••••••" 
                 className="w-full pl-12 pr-12 p-4 bg-gray-50 border border-gray-200 rounded-2xl outline-none focus:ring-2 focus:ring-black transition font-bold"
                 onChange={(e) => setPassword(e.target.value)}
               />
-              {/* Show/Hide Toggle Button */}
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
@@ -130,5 +132,19 @@ export default function Login() {
         </form>
       </div>
     </div>
+  );
+}
+
+// 2. Wrap the whole thing in Suspense for the Build Worker
+export default function Login() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex flex-col items-center justify-center bg-white gap-4">
+        <Loader2 className="animate-spin text-black" size={40} />
+        <p className="text-[10px] font-black uppercase tracking-widest text-gray-300">Securing Entry</p>
+      </div>
+    }>
+      <LoginContent />
+    </Suspense>
   );
 }

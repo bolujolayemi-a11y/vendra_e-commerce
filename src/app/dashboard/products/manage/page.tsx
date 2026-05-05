@@ -1,0 +1,199 @@
+"use client";
+import { useEffect, useState, useMemo } from 'react';
+import { supabase } from '@/lib/supabase';
+import { 
+  Trash2, PackageCheck, PackageX, Loader2, 
+  ChevronLeft, Plus, Minus, Star, Tag, 
+  Archive, Search, ShoppingBag 
+} from 'lucide-react';
+import Link from 'next/link';
+
+export default function ManageProducts() {
+  const [products, setProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+
+  const fetchProducts = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data: store } = await supabase.from('stores').select('id').eq('owner_id', user.id).single();
+      if (store) {
+        const { data } = await supabase.from('products')
+          .select('*')
+          .eq('store_id', store.id)
+          .order('created_at', { ascending: false });
+        setProducts(data || []);
+      }
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => { fetchProducts(); }, []);
+
+  // Filter products based on search
+  const filteredProducts = useMemo(() => {
+    return products.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()));
+  }, [products, searchQuery]);
+
+  // Calculate potential revenue
+  const totalStockValue = useMemo(() => {
+    return products.reduce((acc, p) => acc + (p.price * p.stock_count), 0);
+  }, [products]);
+
+  const updateProduct = async (id: string, updates: any, actionId: string) => {
+    setActionLoading(id + actionId);
+    await supabase.from('products').update(updates).eq('id', id);
+    await fetchProducts();
+    setActionLoading(null);
+  };
+
+  const deleteProduct = async (id: string) => {
+    if (!confirm("This will permanently remove this item from your boutique. Continue?")) return;
+    setActionLoading(id);
+    await supabase.from('products').delete().eq('id', id);
+    await fetchProducts();
+    setActionLoading(null);
+  };
+
+  if (loading) return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-white space-y-4">
+      <Loader2 className="animate-spin text-black" size={40} />
+      <p className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-400">Syncing Vault</p>
+    </div>
+  );
+
+  return (
+    <div className="max-w-6xl mx-auto py-16 px-6 pb-32">
+      {/* HEADER SECTION */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
+        <div className="space-y-2">
+            <Link href="/dashboard" className="flex items-center gap-2 text-gray-400 hover:text-black mb-4 font-black uppercase text-[10px] tracking-widest transition">
+                <ChevronLeft size={14} /> Back to Dashboard
+            </Link>
+            <h1 className="text-6xl font-black uppercase tracking-tighter text-black leading-none">Inventory</h1>
+            <p className="text-gray-400 font-bold uppercase text-[10px] tracking-widest">Global Boutique Control</p>
+        </div>
+        
+        {/* REVENUE WIDGET */}
+        <div className="bg-black text-white p-6 rounded-[2.5rem] flex items-center gap-6 shadow-2xl">
+            <div className="bg-white/10 p-3 rounded-2xl"><ShoppingBag size={20}/></div>
+            <div>
+                <p className="text-[9px] font-black uppercase opacity-50 tracking-widest">Potential Revenue</p>
+                <p className="text-2xl font-black tracking-tighter">₦{totalStockValue.toLocaleString()}</p>
+            </div>
+        </div>
+      </div>
+
+      {/* SEARCH BAR */}
+      <div className="relative mb-8 group">
+        <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-black transition-colors" size={20} />
+        <input 
+            type="text"
+            placeholder="Search your collection..."
+            className="w-full pl-16 pr-8 py-6 bg-gray-50 rounded-[2rem] border border-transparent focus:bg-white focus:border-gray-100 outline-none font-bold text-sm transition-all shadow-inner"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+        />
+      </div>
+
+      {/* PRODUCTS LIST */}
+      <div className="grid gap-4">
+        {filteredProducts.length === 0 ? (
+          <div className="bg-gray-50 py-32 rounded-[3.5rem] border-2 border-dashed border-gray-100 text-center space-y-4">
+            <Archive size={48} className="mx-auto text-gray-200" />
+            <p className="font-black uppercase text-gray-300 tracking-[0.3em]">No items found</p>
+          </div>
+        ) : (
+          filteredProducts.map((product) => {
+            const isClearance = product.stock_count <= 5 && !product.is_sold_out;
+            
+            return (
+              <div key={product.id} className={`group bg-white p-6 rounded-[3rem] border transition-all duration-500 flex flex-col lg:flex-row items-center justify-between gap-8 ${product.is_sold_out ? 'opacity-40 border-gray-50' : 'border-gray-100 hover:shadow-2xl hover:border-transparent'}`}>
+                
+                {/* PREVIEW & INFO */}
+                <div className="flex items-center gap-6 w-full lg:w-auto">
+                  <div className="w-24 h-24 bg-gray-100 rounded-[2rem] overflow-hidden flex-shrink-0">
+                    <img src={product.image_url} alt="" className="w-full h-full object-cover grayscale-[0.2] group-hover:grayscale-0 transition-all duration-500" />
+                  </div>
+                  <div className="space-y-1">
+                    <div className="flex flex-wrap gap-2 mb-1">
+                        {product.category === 'Featured' && (
+                            <span className="bg-amber-50 text-amber-600 px-2 py-0.5 rounded-lg text-[8px] font-black uppercase flex items-center gap-1"><Star size={10} fill="currentColor" /> Featured</span>
+                        )}
+                        {isClearance && (
+                            <span className="bg-red-50 text-red-600 px-2 py-0.5 rounded-lg text-[8px] font-black uppercase flex items-center gap-1"><Tag size={10} /> Clearance</span>
+                        )}
+                        <span className="bg-gray-100 text-gray-400 px-2 py-0.5 rounded-lg text-[8px] font-black uppercase tracking-tighter">{product.category || 'General'}</span>
+                    </div>
+                    <h3 className="font-black text-2xl text-black uppercase tracking-tighter leading-none">{product.name}</h3>
+                    <p className="text-sm font-black text-gray-400 italic">₦{product.price.toLocaleString()}</p>
+                  </div>
+                </div>
+
+                {/* ACTION SUITE */}
+                <div className="flex flex-wrap items-center justify-center gap-4 w-full lg:w-auto">
+                  
+                  {/* STOCK STEPPER */}
+                  <div className="flex items-center bg-gray-50 p-1.5 rounded-[1.8rem] border border-gray-100">
+                    <button 
+                      onClick={() => updateProduct(product.id, { stock_count: Math.max(0, product.stock_count - 1), is_sold_out: product.stock_count - 1 <= 0 }, 'minus')}
+                      className="w-12 h-12 flex items-center justify-center bg-white rounded-2xl shadow-sm hover:bg-black hover:text-white transition-all active:scale-90"
+                    >
+                      <Minus size={16} strokeWidth={3} />
+                    </button>
+                    
+                    <div className="px-6 text-center min-w-[70px]">
+                      <span className="text-[9px] font-black uppercase text-gray-300 block mb-1">Stock</span>
+                      <span className="text-xl font-black leading-none">{product.stock_count}</span>
+                    </div>
+
+                    <button 
+                      onClick={() => updateProduct(product.id, { stock_count: product.stock_count + 1, is_sold_out: false }, 'plus')}
+                      className="w-12 h-12 flex items-center justify-center bg-white rounded-2xl shadow-sm hover:bg-black hover:text-white transition-all active:scale-90"
+                    >
+                      <Plus size={16} strokeWidth={3} />
+                    </button>
+                  </div>
+
+                  {/* TOGGLES */}
+                  <div className="flex gap-2">
+                    <button 
+                      onClick={() => updateProduct(product.id, { is_sold_out: !product.is_sold_out }, 'toggle-status')}
+                      className={`h-14 px-8 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all active:scale-95 ${product.is_sold_out ? 'bg-gray-100 text-gray-400' : 'bg-black text-white'}`}
+                    >
+                      {product.is_sold_out ? "Restock Item" : "Live in Store"}
+                    </button>
+
+                    <button 
+                      onClick={() => updateProduct(product.id, { category: product.category === 'Featured' ? 'General' : 'Featured' }, 'toggle-featured')}
+                      className={`h-14 w-14 rounded-2xl flex items-center justify-center transition-all border ${product.category === 'Featured' ? 'bg-amber-400 text-white border-transparent shadow-lg shadow-amber-200' : 'bg-white text-gray-200 border-gray-100'}`}
+                    >
+                      <Star size={20} fill={product.category === 'Featured' ? "currentColor" : "none"} />
+                    </button>
+                  </div>
+
+                  {/* DELETE */}
+                  <button 
+                    onClick={() => deleteProduct(product.id)}
+                    className="h-14 w-14 flex items-center justify-center text-gray-200 hover:text-red-500 hover:bg-red-50 rounded-2xl transition-all"
+                  >
+                    {actionLoading === product.id ? <Loader2 className="animate-spin" size={20} /> : <Trash2 size={20} />}
+                  </button>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+{/* ADD FLOATING BUTTON */}
+      <Link 
+        href="/dashboard/products" // Ensure this matches your folder name
+        className="fixed bottom-10 left-1/2 -translate-x-1/2 bg-black text-white px-10 py-6 rounded-full font-black uppercase text-[10px] tracking-[0.3em] shadow-[0_20px_50px_rgba(0,0,0,0.3)] hover:scale-105 active:scale-95 transition-all z-[100] flex items-center gap-3 group"
+      >
+        <Plus size={18} className="group-hover:rotate-90 transition-transform duration-300" /> 
+        New Collection Item
+      </Link>
+    </div>
+  );
+}

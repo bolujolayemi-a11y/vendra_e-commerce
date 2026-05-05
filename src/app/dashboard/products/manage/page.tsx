@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabase';
 import { 
   Trash2, PackageCheck, PackageX, Loader2, 
   ChevronLeft, Plus, Minus, Star, Tag, 
-  Archive, Search, ShoppingBag 
+  Archive, Search, ShoppingBag, Sparkles
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -31,12 +31,10 @@ export default function ManageProducts() {
 
   useEffect(() => { fetchProducts(); }, []);
 
-  // Filter products based on search
   const filteredProducts = useMemo(() => {
     return products.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()));
   }, [products, searchQuery]);
 
-  // Calculate potential revenue
   const totalStockValue = useMemo(() => {
     return products.reduce((acc, p) => acc + (p.price * p.stock_count), 0);
   }, [products]);
@@ -72,14 +70,13 @@ export default function ManageProducts() {
                 <ChevronLeft size={14} /> Back to Dashboard
             </Link>
             <h1 className="text-6xl font-black uppercase tracking-tighter text-black leading-none">Inventory</h1>
-            <p className="text-gray-400 font-bold uppercase text-[10px] tracking-widest">Global Boutique Control</p>
+            <p className="text-gray-400 font-bold uppercase text-[10px] tracking-widest">Control Center</p>
         </div>
         
-        {/* REVENUE WIDGET */}
         <div className="bg-black text-white p-6 rounded-[2.5rem] flex items-center gap-6 shadow-2xl">
             <div className="bg-white/10 p-3 rounded-2xl"><ShoppingBag size={20}/></div>
             <div>
-                <p className="text-[9px] font-black uppercase opacity-50 tracking-widest">Potential Revenue</p>
+                <p className="text-[9px] font-black uppercase opacity-50 tracking-widest">Total Stock Value</p>
                 <p className="text-2xl font-black tracking-tighter">₦{totalStockValue.toLocaleString()}</p>
             </div>
         </div>
@@ -90,7 +87,7 @@ export default function ManageProducts() {
         <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-black transition-colors" size={20} />
         <input 
             type="text"
-            placeholder="Search your collection..."
+            placeholder="Search your fabrics/items..."
             className="w-full pl-16 pr-8 py-6 bg-gray-50 rounded-[2rem] border border-transparent focus:bg-white focus:border-gray-100 outline-none font-bold text-sm transition-all shadow-inner"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -105,26 +102,37 @@ export default function ManageProducts() {
             <p className="font-black uppercase text-gray-300 tracking-[0.3em]">No items found</p>
           </div>
         ) : (
-          filteredProducts.map((product) => {
-            const isClearance = product.stock_count <= 5 && !product.is_sold_out;
+          filteredProducts.map((product, index) => {
+            // "New Arrival" if it's one of the top 4 latest added items
+            const isNewArrival = index < 4 && !product.is_clearance;
             
             return (
               <div key={product.id} className={`group bg-white p-6 rounded-[3rem] border transition-all duration-500 flex flex-col lg:flex-row items-center justify-between gap-8 ${product.is_sold_out ? 'opacity-40 border-gray-50' : 'border-gray-100 hover:shadow-2xl hover:border-transparent'}`}>
                 
                 {/* PREVIEW & INFO */}
                 <div className="flex items-center gap-6 w-full lg:w-auto">
-                  <div className="w-24 h-24 bg-gray-100 rounded-[2rem] overflow-hidden flex-shrink-0">
-                    <img src={product.image_url} alt="" className="w-full h-full object-cover grayscale-[0.2] group-hover:grayscale-0 transition-all duration-500" />
+                  <div className="w-24 h-24 bg-gray-100 rounded-[2rem] overflow-hidden flex-shrink-0 relative">
+                    <img src={product.image_url} alt="" className="w-full h-full object-cover transition-all duration-500" />
+                    {isNewArrival && (
+                      <div className="absolute top-1 right-1 bg-blue-500 text-white p-1 rounded-full shadow-lg">
+                        <Sparkles size={10} />
+                      </div>
+                    )}
                   </div>
                   <div className="space-y-1">
                     <div className="flex flex-wrap gap-2 mb-1">
-                        {product.category === 'Featured' && (
+                        {isNewArrival && (
+                            <span className="bg-blue-50 text-blue-600 px-2 py-0.5 rounded-lg text-[8px] font-black uppercase flex items-center gap-1">New Arrival</span>
+                        )}
+                        {product.is_featured && (
                             <span className="bg-amber-50 text-amber-600 px-2 py-0.5 rounded-lg text-[8px] font-black uppercase flex items-center gap-1"><Star size={10} fill="currentColor" /> Featured</span>
                         )}
-                        {isClearance && (
+                        {product.is_clearance && (
                             <span className="bg-red-50 text-red-600 px-2 py-0.5 rounded-lg text-[8px] font-black uppercase flex items-center gap-1"><Tag size={10} /> Clearance</span>
                         )}
-                        <span className="bg-gray-100 text-gray-400 px-2 py-0.5 rounded-lg text-[8px] font-black uppercase tracking-tighter">{product.category || 'General'}</span>
+                        <span className="bg-gray-100 text-gray-400 px-2 py-0.5 rounded-lg text-[8px] font-black uppercase tracking-tighter">
+                          {!product.is_clearance && !isNewArrival ? 'General Stock' : ''}
+                        </span>
                     </div>
                     <h3 className="font-black text-2xl text-black uppercase tracking-tighter leading-none">{product.name}</h3>
                     <p className="text-sm font-black text-gray-400 italic">₦{product.price.toLocaleString()}</p>
@@ -134,13 +142,13 @@ export default function ManageProducts() {
                 {/* ACTION SUITE */}
                 <div className="flex flex-wrap items-center justify-center gap-4 w-full lg:w-auto">
                   
-                  {/* STOCK STEPPER */}
+                  {/* STOCK CONTROL */}
                   <div className="flex items-center bg-gray-50 p-1.5 rounded-[1.8rem] border border-gray-100">
                     <button 
                       onClick={() => updateProduct(product.id, { stock_count: Math.max(0, product.stock_count - 1), is_sold_out: product.stock_count - 1 <= 0 }, 'minus')}
                       className="w-12 h-12 flex items-center justify-center bg-white rounded-2xl shadow-sm hover:bg-black hover:text-white transition-all active:scale-90"
                     >
-                      <Minus size={16} strokeWidth={3} />
+                      <Minus size={16} />
                     </button>
                     
                     <div className="px-6 text-center min-w-[70px]">
@@ -152,24 +160,36 @@ export default function ManageProducts() {
                       onClick={() => updateProduct(product.id, { stock_count: product.stock_count + 1, is_sold_out: false }, 'plus')}
                       className="w-12 h-12 flex items-center justify-center bg-white rounded-2xl shadow-sm hover:bg-black hover:text-white transition-all active:scale-90"
                     >
-                      <Plus size={16} strokeWidth={3} />
+                      <Plus size={16} />
                     </button>
                   </div>
 
-                  {/* TOGGLES */}
+                  {/* TOGGLES FOR FEATURED & CLEARANCE */}
                   <div className="flex gap-2">
+                    {/* Manual Featured Toggle */}
                     <button 
-                      onClick={() => updateProduct(product.id, { is_sold_out: !product.is_sold_out }, 'toggle-status')}
-                      className={`h-14 px-8 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all active:scale-95 ${product.is_sold_out ? 'bg-gray-100 text-gray-400' : 'bg-black text-white'}`}
+                      onClick={() => updateProduct(product.id, { is_featured: !product.is_featured }, 'toggle-featured')}
+                      className={`h-14 w-14 rounded-2xl flex items-center justify-center transition-all border ${product.is_featured ? 'bg-amber-400 text-white border-transparent shadow-lg shadow-amber-200' : 'bg-white text-gray-200 border-gray-100'}`}
+                      title="Mark as Featured"
                     >
-                      {product.is_sold_out ? "Restock Item" : "Live in Store"}
+                      <Star size={20} fill={product.is_featured ? "currentColor" : "none"} />
                     </button>
 
+                    {/* Manual Clearance Toggle */}
                     <button 
-                      onClick={() => updateProduct(product.id, { category: product.category === 'Featured' ? 'General' : 'Featured' }, 'toggle-featured')}
-                      className={`h-14 w-14 rounded-2xl flex items-center justify-center transition-all border ${product.category === 'Featured' ? 'bg-amber-400 text-white border-transparent shadow-lg shadow-amber-200' : 'bg-white text-gray-200 border-gray-100'}`}
+                      onClick={() => updateProduct(product.id, { is_clearance: !product.is_clearance }, 'toggle-clearance')}
+                      className={`h-14 w-14 rounded-2xl flex items-center justify-center transition-all border ${product.is_clearance ? 'bg-red-500 text-white border-transparent shadow-lg shadow-red-200' : 'bg-white text-gray-200 border-gray-100'}`}
+                      title="Mark as Clearance"
                     >
-                      <Star size={20} fill={product.category === 'Featured' ? "currentColor" : "none"} />
+                      <Tag size={20} />
+                    </button>
+
+                    {/* Sold Out Toggle */}
+                    <button 
+                      onClick={() => updateProduct(product.id, { is_sold_out: !product.is_sold_out }, 'toggle-status')}
+                      className={`h-14 px-6 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all active:scale-95 ${product.is_sold_out ? 'bg-gray-200 text-gray-400' : 'bg-black text-white'}`}
+                    >
+                      {product.is_sold_out ? "Restock" : "Active"}
                     </button>
                   </div>
 
@@ -186,13 +206,14 @@ export default function ManageProducts() {
           })
         )}
       </div>
-{/* ADD FLOATING BUTTON */}
+
+      {/* FLOATING ACTION BUTTON */}
       <Link 
-        href="/dashboard/products" // Ensure this matches your folder name
+        href="/dashboard/products" 
         className="fixed bottom-10 left-1/2 -translate-x-1/2 bg-black text-white px-10 py-6 rounded-full font-black uppercase text-[10px] tracking-[0.3em] shadow-[0_20px_50px_rgba(0,0,0,0.3)] hover:scale-105 active:scale-95 transition-all z-[100] flex items-center gap-3 group"
       >
         <Plus size={18} className="group-hover:rotate-90 transition-transform duration-300" /> 
-        New Collection Item
+        Add New Fabric
       </Link>
     </div>
   );

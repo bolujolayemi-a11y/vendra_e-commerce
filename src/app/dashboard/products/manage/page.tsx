@@ -1,10 +1,9 @@
 "use client";
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react'; // Added useCallback
 import { supabase } from '@/lib/supabase';
 import { 
-  Trash2, PackageCheck, PackageX, Loader2, 
-  ChevronLeft, Plus, Minus, Star, Tag, 
-  Archive, Search, ShoppingBag, Sparkles
+  Trash2, Loader2, ChevronLeft, Plus, Minus, 
+  Star, Tag, Archive, Search, ShoppingBag, Sparkles
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -14,7 +13,8 @@ export default function ManageProducts() {
   const [searchQuery, setSearchQuery] = useState("");
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
-  const fetchProducts = async () => {
+  // Memoized fetch to prevent unnecessary re-renders
+  const fetchProducts = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
       const { data: store } = await supabase.from('stores').select('id').eq('owner_id', user.id).single();
@@ -27,9 +27,9 @@ export default function ManageProducts() {
       }
     }
     setLoading(false);
-  };
+  }, []);
 
-  useEffect(() => { fetchProducts(); }, []);
+  useEffect(() => { fetchProducts(); }, [fetchProducts]);
 
   const filteredProducts = useMemo(() => {
     return products.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()));
@@ -39,15 +39,36 @@ export default function ManageProducts() {
     return products.reduce((acc, p) => acc + (p.price * p.stock_count), 0);
   }, [products]);
 
+  // IMPROVED UPDATE FUNCTION
   const updateProduct = async (id: string, updates: any, actionId: string) => {
-    setActionLoading(id + actionId);
-    await supabase.from('products').update(updates).eq('id', id);
-    await fetchProducts();
-    setActionLoading(null);
+    const loadingKey = id + actionId;
+    setActionLoading(loadingKey);
+
+    try {
+      // 1. Perform the update in Supabase
+      const { error } = await supabase
+        .from('products')
+        .update(updates)
+        .eq('id', id);
+
+      if (error) throw error;
+
+      // 2. Local State Update (Optimistic)
+      setProducts(prev => 
+        prev.map(p => p.id === id ? { ...p, ...updates } : p)
+      );
+
+    } catch (err: any) {
+      console.error("Update failed:", err.message);
+      alert("Failed to sync change. Please check your connection.");
+      await fetchProducts(); // Rollback to database state
+    } finally {
+      setActionLoading(null);
+    }
   };
 
   const deleteProduct = async (id: string) => {
-    if (!confirm("This will permanently remove this item from your boutique. Continue?")) return;
+    if (!confirm("Remove this item from your boutique permanently?")) return;
     setActionLoading(id);
     await supabase.from('products').delete().eq('id', id);
     await fetchProducts();
@@ -76,7 +97,7 @@ export default function ManageProducts() {
         <div className="bg-black text-white p-6 rounded-[2.5rem] flex items-center gap-6 shadow-2xl">
             <div className="bg-white/10 p-3 rounded-2xl"><ShoppingBag size={20}/></div>
             <div>
-                <p className="text-[9px] font-black uppercase opacity-50 tracking-widest">Total Stock Value</p>
+                <p className="text-[9px] font-black uppercase opacity-50 tracking-widest">Potential Revenue</p>
                 <p className="text-2xl font-black tracking-tighter">₦{totalStockValue.toLocaleString()}</p>
             </div>
         </div>
@@ -87,7 +108,7 @@ export default function ManageProducts() {
         <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-black transition-colors" size={20} />
         <input 
             type="text"
-            placeholder="Search your fabrics/items..."
+            placeholder="Search your collection..."
             className="w-full pl-16 pr-8 py-6 bg-gray-50 rounded-[2rem] border border-transparent focus:bg-white focus:border-gray-100 outline-none font-bold text-sm transition-all shadow-inner"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -103,13 +124,11 @@ export default function ManageProducts() {
           </div>
         ) : (
           filteredProducts.map((product, index) => {
-            // "New Arrival" if it's one of the top 4 latest added items
             const isNewArrival = index < 4 && !product.is_clearance;
             
             return (
               <div key={product.id} className={`group bg-white p-6 rounded-[3rem] border transition-all duration-500 flex flex-col lg:flex-row items-center justify-between gap-8 ${product.is_sold_out ? 'opacity-40 border-gray-50' : 'border-gray-100 hover:shadow-2xl hover:border-transparent'}`}>
                 
-                {/* PREVIEW & INFO */}
                 <div className="flex items-center gap-6 w-full lg:w-auto">
                   <div className="w-24 h-24 bg-gray-100 rounded-[2rem] overflow-hidden flex-shrink-0 relative">
                     <img src={product.image_url} alt="" className="w-full h-full object-cover transition-all duration-500" />
@@ -130,16 +149,12 @@ export default function ManageProducts() {
                         {product.is_clearance && (
                             <span className="bg-red-50 text-red-600 px-2 py-0.5 rounded-lg text-[8px] font-black uppercase flex items-center gap-1"><Tag size={10} /> Clearance</span>
                         )}
-                        <span className="bg-gray-100 text-gray-400 px-2 py-0.5 rounded-lg text-[8px] font-black uppercase tracking-tighter">
-                          {!product.is_clearance && !isNewArrival ? 'General Stock' : ''}
-                        </span>
                     </div>
                     <h3 className="font-black text-2xl text-black uppercase tracking-tighter leading-none">{product.name}</h3>
                     <p className="text-sm font-black text-gray-400 italic">₦{product.price.toLocaleString()}</p>
                   </div>
                 </div>
 
-                {/* ACTION SUITE */}
                 <div className="flex flex-wrap items-center justify-center gap-4 w-full lg:w-auto">
                   
                   {/* STOCK CONTROL */}
@@ -164,41 +179,39 @@ export default function ManageProducts() {
                     </button>
                   </div>
 
-                  {/* TOGGLES FOR FEATURED & CLEARANCE */}
+                  {/* TOGGLES */}
                   <div className="flex gap-2">
-                    {/* Manual Featured Toggle */}
+                    {/* Featured Toggle */}
                     <button 
-                      onClick={() => updateProduct(product.id, { is_featured: !product.is_featured }, 'toggle-featured')}
+                      onClick={() => updateProduct(product.id, { is_featured: !product.is_featured }, 'featured')}
+                      disabled={actionLoading === product.id + 'featured'}
                       className={`h-14 w-14 rounded-2xl flex items-center justify-center transition-all border ${product.is_featured ? 'bg-amber-400 text-white border-transparent shadow-lg shadow-amber-200' : 'bg-white text-gray-200 border-gray-100'}`}
-                      title="Mark as Featured"
                     >
-                      <Star size={20} fill={product.is_featured ? "currentColor" : "none"} />
+                      {actionLoading === product.id + 'featured' ? <Loader2 size={18} className="animate-spin"/> : <Star size={20} fill={product.is_featured ? "currentColor" : "none"} />}
                     </button>
 
-                    {/* Manual Clearance Toggle */}
+                    {/* Clearance Toggle */}
                     <button 
-                      onClick={() => updateProduct(product.id, { is_clearance: !product.is_clearance }, 'toggle-clearance')}
+                      onClick={() => updateProduct(product.id, { is_clearance: !product.is_clearance }, 'clearance')}
+                      disabled={actionLoading === product.id + 'clearance'}
                       className={`h-14 w-14 rounded-2xl flex items-center justify-center transition-all border ${product.is_clearance ? 'bg-red-500 text-white border-transparent shadow-lg shadow-red-200' : 'bg-white text-gray-200 border-gray-100'}`}
-                      title="Mark as Clearance"
                     >
-                      <Tag size={20} />
+                      {actionLoading === product.id + 'clearance' ? <Loader2 size={18} className="animate-spin"/> : <Tag size={20} />}
                     </button>
 
-                    {/* Sold Out Toggle */}
                     <button 
-                      onClick={() => updateProduct(product.id, { is_sold_out: !product.is_sold_out }, 'toggle-status')}
-                      className={`h-14 px-6 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all active:scale-95 ${product.is_sold_out ? 'bg-gray-200 text-gray-400' : 'bg-black text-white'}`}
+                      onClick={() => updateProduct(product.id, { is_sold_out: !product.is_sold_out }, 'status')}
+                      className={`h-14 px-6 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all ${product.is_sold_out ? 'bg-gray-200 text-gray-400' : 'bg-black text-white'}`}
                     >
                       {product.is_sold_out ? "Restock" : "Active"}
                     </button>
                   </div>
 
-                  {/* DELETE */}
                   <button 
                     onClick={() => deleteProduct(product.id)}
                     className="h-14 w-14 flex items-center justify-center text-gray-200 hover:text-red-500 hover:bg-red-50 rounded-2xl transition-all"
                   >
-                    {actionLoading === product.id ? <Loader2 className="animate-spin" size={20} /> : <Trash2 size={20} />}
+                    <Trash2 size={20} />
                   </button>
                 </div>
               </div>
@@ -207,7 +220,6 @@ export default function ManageProducts() {
         )}
       </div>
 
-      {/* FLOATING ACTION BUTTON */}
       <Link 
         href="/dashboard/products" 
         className="fixed bottom-10 left-1/2 -translate-x-1/2 bg-black text-white px-10 py-6 rounded-full font-black uppercase text-[10px] tracking-[0.3em] shadow-[0_20px_50px_rgba(0,0,0,0.3)] hover:scale-105 active:scale-95 transition-all z-[100] flex items-center gap-3 group"

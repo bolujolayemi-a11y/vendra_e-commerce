@@ -39,29 +39,40 @@ export default function PublicStore() {
     fetchStorefront();
   }, [slug]);
 
-  // Logic for Sections
-  const clearanceProducts = products.filter(p => p.is_clearance === true);
-  const nonClearanceProducts = products.filter(p => !p.is_clearance);
-  const newArrivals = nonClearanceProducts.slice(0, 4);
-  const generalProducts = nonClearanceProducts.slice(4);
+// --- REFINED SECTION LOGIC (With Featured) ---
+  
+  // 1. Featured Section (Manual Star Toggle)
+  const featuredProducts = products.filter(p => p.is_featured === true);
 
-  // --- SHARE FUNCTION ---
+  // 2. Manual Clearance Section (Manual Tag Toggle)
+  const clearanceProducts = products.filter(p => p.is_clearance === true);
+
+  // Filter out items that are already in Featured or Clearance
+  const remainingProducts = products.filter(p => !p.is_featured && !p.is_clearance);
+
+  // 3. New Arrivals: The top 4 most recent items from the remaining pool
+  const newArrivals = remainingProducts.slice(0, 4);
+
+  // 4. General Stock: Everything else left over
+  const generalProducts = remainingProducts.slice(4);
+
   const handleShare = async () => {
+    // Uses the live domain automatically
+    const shareUrl = window.location.href;
     const shareData = {
       title: store?.name || 'Vendra Store',
-      text: `Check out ${store?.name} on Vendra! High-quality fabrics and materials.`,
-      url: window.location.href,
+      text: `Check out ${store?.name} on Vendra! Quality materials found here.`,
+      url: shareUrl,
     };
 
     if (navigator.share) {
       try {
         await navigator.share(shareData);
       } catch (err) {
-        console.log("Share failed");
+        console.log("Share cancelled");
       }
     } else {
-      // Fallback: Copy to clipboard
-      navigator.clipboard.writeText(window.location.href);
+      navigator.clipboard.writeText(shareUrl);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
@@ -99,12 +110,11 @@ export default function PublicStore() {
       
       {/* 1. HERO SECTION */}
       <header className="pt-32 pb-20 px-6 text-center border-b border-gray-50 relative">
-        {/* SHARE ACTION */}
         <button 
           onClick={handleShare}
           className="absolute top-10 right-6 md:right-12 flex items-center gap-2 bg-gray-50 border border-gray-100 px-5 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-black hover:text-white transition-all active:scale-95 shadow-sm"
         >
-          <Share2 size={14} /> {copied ? "Copied!" : "Share Store"}
+          <Share2 size={14} /> {copied ? "Link Copied!" : "Share Store"}
         </button>
 
         <div className="max-w-4xl mx-auto space-y-6">
@@ -112,10 +122,35 @@ export default function PublicStore() {
                 {store?.name}
             </h1>
             <p className="text-gray-400 font-bold uppercase text-[10px] tracking-[0.5em]">
-                {store?.description || "High-End Fabrics • Curated Selection"}
+                {store?.description || "Curated Selection • Vendra Boutique"}
             </p>
         </div>
       </header>
+
+      {/* 0. FEATURED SECTION */}
+      {featuredProducts.length > 0 && (
+        <section className="max-w-7xl mx-auto px-6 py-24 bg-amber-50/20 rounded-[3rem] my-10 border border-amber-50">
+          <div className="flex items-center gap-4 mb-12">
+              <Sparkles size={20} className="text-amber-500" />
+              <h2 className="text-2xl font-black uppercase tracking-tighter">Editor's Choice</h2>
+              <div className="h-[1px] flex-1 bg-amber-100"></div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
+            {featuredProducts.map((product) => (
+              <ProductCard 
+                key={product.id} 
+                product={product} 
+                cart={cart} 
+                addToCart={addToCart} 
+                removeFromCart={removeFromCart} 
+                setBubbleMessage={setBubbleMessage} 
+                setIsBubbleOpen={setIsBubbleOpen} 
+              />
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* 2. NEW ARRIVALS */}
       {newArrivals.length > 0 && (
@@ -153,7 +188,7 @@ export default function PublicStore() {
         </section>
       )}
 
-      {/* 4. GENERAL STOCK */}
+      {/* 4. GENERAL STOCK (Remaining Items) */}
       {generalProducts.length > 0 && (
         <section className="max-w-7xl mx-auto px-6 py-24">
           <div className="flex items-center gap-4 mb-12">
@@ -169,7 +204,7 @@ export default function PublicStore() {
         </section>
       )}
 
-      {/* 5. FLOATING CART BAR */}
+      {/* FOOTER & FLOATING COMPONENTS */}
       {totalItems > 0 && (
         <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[90] w-[90%] max-w-lg">
           <div className="bg-black text-white p-5 rounded-full shadow-2xl flex items-center justify-between border border-white/10">
@@ -191,7 +226,6 @@ export default function PublicStore() {
         </div>
       )}
 
-      {/* WHATSAPP BUBBLE */}
       <div className="fixed bottom-8 right-8 z-[100]">
         {isBubbleOpen && (
           <div className="absolute bottom-20 right-0 w-80 bg-white rounded-[2.5rem] shadow-2xl border border-gray-100 overflow-hidden animate-in fade-in zoom-in duration-300 origin-bottom-right">
@@ -206,7 +240,7 @@ export default function PublicStore() {
                     className="w-full p-4 rounded-2xl text-xs font-bold h-24 bg-white outline-none border border-gray-100 resize-none"
                 />
                 <button 
-                    onClick={() => window.open(`https://wa.me/${store.whatsapp_number.replace(/\D/g, '')}?text=${encodeURIComponent(bubbleMessage)}`)} 
+                    onClick={() => window.open(`https://wa.me/${store?.whatsapp_number?.replace(/\D/g, '')}?text=${encodeURIComponent(bubbleMessage)}`)} 
                     className="w-full mt-4 py-4 bg-[#25D366] text-white rounded-2xl font-black text-[10px] uppercase shadow-lg shadow-green-500/10"
                 >
                     Send Message
@@ -220,12 +254,13 @@ export default function PublicStore() {
       </div>
 
       <footer className="py-20 text-center border-t border-gray-50">
-        <p className="text-[10px] font-black uppercase tracking-[1em] text-gray-200">Vendra &bull; Made in Nigeria</p>
+        <p className="text-[10px] font-black uppercase tracking-[1em] text-gray-200">Vendra &bull; 2026</p>
       </footer>
     </div>
   );
 }
 
+// SHARED PRODUCT CARD
 function ProductCard({ product, cart, addToCart, removeFromCart, setBubbleMessage, setIsBubbleOpen, isSmall = false }: any) {
   const quantityInCart = cart[product.id]?.quantity || 0;
 

@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { 
   MessageCircle, Loader2, Store, Plus, Minus, 
   X, Send, ArrowRight, ShoppingBag, ChevronRight, 
-  Tag, Sparkles, Clock, LayoutGrid 
+  Tag, Sparkles, Clock, LayoutGrid, Share2 
 } from 'lucide-react';
 
 export default function PublicStore() {
@@ -19,6 +19,7 @@ export default function PublicStore() {
   const [cart, setCart] = useState<{ [key: string]: any }>({});
   const [isBubbleOpen, setIsBubbleOpen] = useState(false);
   const [bubbleMessage, setBubbleMessage] = useState("");
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     async function fetchStorefront() {
@@ -30,7 +31,7 @@ export default function PublicStore() {
           .from('products')
           .select('*')
           .eq('store_id', storeData.id)
-          .order('created_at', { ascending: false }); // Newest first
+          .order('created_at', { ascending: false });
         setProducts(productsData || []);
       }
       setLoading(false);
@@ -38,19 +39,33 @@ export default function PublicStore() {
     fetchStorefront();
   }, [slug]);
 
-  // --- REVISED LOGIC FOR YOUR WORKFLOW ---
-
-  // 1. Manual Clearance: Only items you explicitly marked
+  // Logic for Sections
   const clearanceProducts = products.filter(p => p.is_clearance === true);
-
-  // Filter out clearance items for the other sections so they don't double-show
   const nonClearanceProducts = products.filter(p => !p.is_clearance);
-
-  // 2. New Arrivals: The 4 most recently added non-clearance items
   const newArrivals = nonClearanceProducts.slice(0, 4);
-
-  // 3. General Stock: Everything else left over
   const generalProducts = nonClearanceProducts.slice(4);
+
+  // --- SHARE FUNCTION ---
+  const handleShare = async () => {
+    const shareData = {
+      title: store?.name || 'Vendra Store',
+      text: `Check out ${store?.name} on Vendra! High-quality fabrics and materials.`,
+      url: window.location.href,
+    };
+
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+      } catch (err) {
+        console.log("Share failed");
+      }
+    } else {
+      // Fallback: Copy to clipboard
+      navigator.clipboard.writeText(window.location.href);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
 
   const addToCart = (product: any) => {
     setCart(prev => {
@@ -83,7 +98,15 @@ export default function PublicStore() {
     <div className="min-h-screen bg-white text-black selection:bg-black selection:text-white pb-40">
       
       {/* 1. HERO SECTION */}
-      <header className="pt-32 pb-20 px-6 text-center border-b border-gray-50">
+      <header className="pt-32 pb-20 px-6 text-center border-b border-gray-50 relative">
+        {/* SHARE ACTION */}
+        <button 
+          onClick={handleShare}
+          className="absolute top-10 right-6 md:right-12 flex items-center gap-2 bg-gray-50 border border-gray-100 px-5 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-black hover:text-white transition-all active:scale-95 shadow-sm"
+        >
+          <Share2 size={14} /> {copied ? "Copied!" : "Share Store"}
+        </button>
+
         <div className="max-w-4xl mx-auto space-y-6">
             <h1 className="text-7xl md:text-9xl font-black uppercase tracking-tighter leading-none">
                 {store?.name}
@@ -94,7 +117,7 @@ export default function PublicStore() {
         </div>
       </header>
 
-      {/* 2. NEW ARRIVALS (Automatic Top 4) */}
+      {/* 2. NEW ARRIVALS */}
       {newArrivals.length > 0 && (
         <section className="max-w-7xl mx-auto px-6 py-24">
           <div className="flex items-center gap-4 mb-12">
@@ -111,7 +134,7 @@ export default function PublicStore() {
         </section>
       )}
 
-      {/* 3. CLEARANCE SECTION (Manual Only) */}
+      {/* 3. CLEARANCE SECTION */}
       {clearanceProducts.length > 0 && (
         <section className="bg-red-50/30 py-24 px-6 border-y border-red-100">
           <div className="max-w-7xl mx-auto">
@@ -130,7 +153,7 @@ export default function PublicStore() {
         </section>
       )}
 
-      {/* 4. GENERAL STOCK (The rest of your items) */}
+      {/* 4. GENERAL STOCK */}
       {generalProducts.length > 0 && (
         <section className="max-w-7xl mx-auto px-6 py-24">
           <div className="flex items-center gap-4 mb-12">
@@ -203,7 +226,6 @@ export default function PublicStore() {
   );
 }
 
-// Reusable Product Card Component
 function ProductCard({ product, cart, addToCart, removeFromCart, setBubbleMessage, setIsBubbleOpen, isSmall = false }: any) {
   const quantityInCart = cart[product.id]?.quantity || 0;
 

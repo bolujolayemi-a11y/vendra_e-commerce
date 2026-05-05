@@ -1,10 +1,9 @@
 "use client";
-import { Suspense } from 'react'; // 1. Added Suspense
+import { Suspense } from 'react';
 import { ChevronLeft, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 
-// 2. Move the logic into a sub-component
 function LegalNav() {
   const searchParams = useSearchParams();
   const fromDashboard = searchParams.get('from') === 'dashboard';
@@ -22,31 +21,15 @@ function LegalNav() {
   );
 }
 
-export default function LegalLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function LegalLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-white pb-20">
-      {/* 3. Wrap the Nav in Suspense because it uses useSearchParams */}
-      <Suspense fallback={
-        <div className="p-6 max-w-7xl mx-auto animate-pulse">
-          <div className="h-4 w-32 bg-gray-100 rounded-full" />
-        </div>
-      }>
+      <Suspense fallback={<div className="p-10 animate-pulse bg-gray-50 m-6 rounded-xl" />}>
         <LegalNav />
       </Suspense>
-
       <main className="max-w-3xl mx-auto px-6 pt-10">
         {children}
       </main>
-
-      <footer className="mt-32 py-12 border-t border-gray-50 text-center">
-        <p className="text-[10px] font-black uppercase tracking-[0.5em] text-gray-200">
-          Vendra Legal Operations &bull; 2026
-        </p>
-      </footer>
     </div>
   );
 }

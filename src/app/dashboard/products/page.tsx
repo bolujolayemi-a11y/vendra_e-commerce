@@ -10,7 +10,6 @@ import {
   X, 
   Sparkles, 
   Tag, 
-  Info 
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -90,7 +89,7 @@ export default function AddProduct() {
 
       if (dbError) throw dbError;
 
-      // PATH SYNC: Redirecting to the plural 'products' path
+      // Ensure this matches your plural folder structure exactly
       router.push('/dashboard/products/manage'); 
       router.refresh();
     } catch (err: any) {
@@ -101,15 +100,14 @@ export default function AddProduct() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto py-16 px-6">
-      {/* PATH SYNC: Back link updated to plural */}
+    <div className="max-w-3xl mx-auto py-16 px-6 pb-32">
       <Link href="/dashboard/products/manage" className="inline-flex items-center gap-2 text-gray-400 hover:text-black mb-10 transition font-black uppercase text-[10px] tracking-widest">
         <ChevronLeft size={16} /> Back to Inventory
       </Link>
 
       <div className="mb-12">
         <h1 className="text-5xl font-black uppercase tracking-tighter text-black leading-none mb-3">Add Item</h1>
-        <p className="text-gray-400 font-bold uppercase text-[10px] tracking-widest">List a new masterpiece</p>
+        <p className="text-gray-400 font-bold uppercase text-[10px] tracking-widest leading-relaxed">List a new masterpiece in your boutique</p>
       </div>
 
       <form onSubmit={handleAddProduct} className="space-y-10">
@@ -117,11 +115,11 @@ export default function AddProduct() {
         {/* IMAGE UPLOAD */}
         <div className="space-y-4">
           <label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Product Visual</label>
-          <div className={`relative aspect-square md:aspect-video rounded-[3rem] border-2 border-dashed transition-all duration-500 overflow-hidden ${imagePreview ? 'border-transparent' : 'border-gray-200 bg-gray-50 hover:border-black shadow-inner'}`}>
+          <div className={`relative aspect-square md:aspect-video rounded-[3rem] border-2 border-dashed transition-all duration-500 overflow-hidden ${imagePreview ? 'border-transparent shadow-2xl' : 'border-gray-200 bg-gray-50 hover:border-black shadow-inner'}`}>
             {imagePreview ? (
               <>
                 <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
-                <button type="button" onClick={() => { setImageFile(null); setImagePreview(null); }} className="absolute top-6 right-6 bg-black text-white p-2 rounded-full shadow-xl hover:scale-110 transition"><X size={20}/></button>
+                <button type="button" onClick={() => { setImageFile(null); setImagePreview(null); }} className="absolute top-6 right-6 bg-black text-white p-2 rounded-full shadow-xl hover:scale-110 active:scale-90 transition"><X size={20}/></button>
               </>
             ) : (
               <label className="flex flex-col items-center justify-center h-full cursor-pointer p-10 group">
@@ -133,11 +131,10 @@ export default function AddProduct() {
           </div>
         </div>
 
-        {/* BASIC INFO */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
           <div className="space-y-4">
             <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Product Name</label>
-            <input required className="w-full p-6 bg-white border border-gray-100 rounded-[1.5rem] text-sm font-bold outline-none focus:ring-4 focus:ring-black/5 shadow-sm" placeholder="e.g. Premium Silk Lace" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} />
+            <input required className="w-full p-6 bg-white border border-gray-100 rounded-[1.5rem] text-sm font-bold outline-none focus:ring-4 focus:ring-black/5 shadow-sm" placeholder="e.g. Vintage Silk Pattern" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} />
           </div>
 
           <div className="space-y-4">
@@ -146,7 +143,6 @@ export default function AddProduct() {
           </div>
         </div>
 
-        {/* STOCK & COLLECTION */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
           <div className="space-y-4">
             <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Initial Stock</label>
@@ -163,7 +159,6 @@ export default function AddProduct() {
           </div>
         </div>
 
-        {/* BOUTIQUE TOGGLES */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <button 
             type="button"
@@ -175,7 +170,7 @@ export default function AddProduct() {
             </div>
             <div className="text-left">
               <p className="text-[10px] font-black uppercase tracking-widest">Featured</p>
-              <p className="text-[9px] text-gray-400 font-bold uppercase">Show in Editor's Choice</p>
+              <p className="text-[9px] text-gray-400 font-bold uppercase">Editor's Choice</p>
             </div>
           </button>
 
@@ -189,18 +184,18 @@ export default function AddProduct() {
             </div>
             <div className="text-left">
               <p className="text-[10px] font-black uppercase tracking-widest">Clearance</p>
-              <p className="text-[9px] text-gray-400 font-bold uppercase">Move to Sale Section</p>
+              <p className="text-[9px] text-gray-400 font-bold uppercase">Sale Section</p>
             </div>
           </button>
         </div>
 
         <div className="space-y-4">
           <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Description</label>
-          <textarea rows={4} className="w-full p-6 bg-white border border-gray-100 rounded-[2rem] text-sm font-bold outline-none resize-none focus:ring-4 focus:ring-black/5 shadow-sm" placeholder="Tell the story of this material..." value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} />
+          <textarea rows={4} className="w-full p-6 bg-white border border-gray-100 rounded-[2rem] text-sm font-bold outline-none resize-none focus:ring-4 focus:ring-black/5 shadow-sm" placeholder="What makes this item special?" value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} />
         </div>
 
-        <button disabled={loading} className="w-full bg-black text-white py-8 rounded-[2rem] font-black text-[11px] uppercase tracking-widest hover:bg-gray-800 transition-all flex items-center justify-center gap-3 shadow-2xl active:scale-95 disabled:bg-gray-200">
-          {loading ? <Loader2 className="animate-spin" /> : <><PackagePlus size={18}/> Add to Store</>}
+        <button disabled={loading} className="w-full bg-black text-white py-8 rounded-[2.5rem] font-black text-[11px] uppercase tracking-widest hover:bg-gray-800 transition-all flex items-center justify-center gap-3 shadow-2xl active:scale-95 disabled:bg-gray-200">
+          {loading ? <Loader2 className="animate-spin" /> : <><PackagePlus size={18}/> Add to Collection</>}
         </button>
       </form>
     </div>

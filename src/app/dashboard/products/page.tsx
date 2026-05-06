@@ -90,7 +90,8 @@ export default function AddProduct() {
 
       if (dbError) throw dbError;
 
-      router.push('/dashboard/manage'); // Redirect back to inventory
+      // REDIRECT FIX: Updated to match your nested path
+      router.push('/dashboard/product/manage'); 
       router.refresh();
     } catch (err: any) {
       alert("Error: " + err.message);
@@ -101,7 +102,8 @@ export default function AddProduct() {
 
   return (
     <div className="max-w-3xl mx-auto py-16 px-6">
-      <Link href="/dashboard/manage" className="inline-flex items-center gap-2 text-gray-400 hover:text-black mb-10 transition font-black uppercase text-[10px] tracking-widest">
+      {/* LINK FIX: Updated to match your nested path */}
+      <Link href="/dashboard/product/manage" className="inline-flex items-center gap-2 text-gray-400 hover:text-black mb-10 transition font-black uppercase text-[10px] tracking-widest">
         <ChevronLeft size={16} /> Back to Inventory
       </Link>
 
@@ -135,12 +137,12 @@ export default function AddProduct() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
           <div className="space-y-4">
             <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Product Name</label>
-            <input required className="w-full p-6 bg-white border border-gray-100 rounded-[1.5rem] text-sm font-bold outline-none focus:ring-4 focus:ring-black/5" placeholder="Add Product Name" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} />
+            <input required className="w-full p-6 bg-white border border-gray-100 rounded-[1.5rem] text-sm font-bold outline-none focus:ring-4 focus:ring-black/5 shadow-sm" placeholder="e.g. Premium Silk Lace" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} />
           </div>
 
           <div className="space-y-4">
             <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Price (₦)</label>
-            <input required type="number" className="w-full p-6 bg-white border border-gray-100 rounded-[1.5rem] text-sm font-bold outline-none focus:ring-4 focus:ring-black/5" placeholder="0" value={formData.price} onChange={(e) => setFormData({...formData, price: e.target.value})} />
+            <input required type="number" className="w-full p-6 bg-white border border-gray-100 rounded-[1.5rem] text-sm font-bold outline-none focus:ring-4 focus:ring-black/5 shadow-sm" placeholder="0" value={formData.price} onChange={(e) => setFormData({...formData, price: e.target.value})} />
           </div>
         </div>
 
@@ -148,12 +150,12 @@ export default function AddProduct() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
           <div className="space-y-4">
             <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Initial Stock</label>
-            <input required type="number" className="w-full p-6 bg-white border border-gray-100 rounded-[1.5rem] text-sm font-bold outline-none focus:ring-4 focus:ring-black/5" value={formData.stock_count} onChange={(e) => setFormData({...formData, stock_count: e.target.value})} />
+            <input required type="number" className="w-full p-6 bg-white border border-gray-100 rounded-[1.5rem] text-sm font-bold outline-none focus:ring-4 focus:ring-black/5 shadow-sm" value={formData.stock_count} onChange={(e) => setFormData({...formData, stock_count: e.target.value})} />
           </div>
 
           <div className="space-y-4">
             <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Section</label>
-            <select className="w-full p-6 bg-white border border-gray-100 rounded-[1.5rem] text-sm font-bold outline-none cursor-pointer" value={formData.category} onChange={(e) => setFormData({...formData, category: e.target.value})}>
+            <select className="w-full p-6 bg-white border border-gray-100 rounded-[1.5rem] text-sm font-bold outline-none cursor-pointer shadow-sm appearance-none" value={formData.category} onChange={(e) => setFormData({...formData, category: e.target.value})}>
               <option value="General">General Collection</option>
               <option value="Accessories">Accessories</option>
               <option value="Apparel">Apparel</option>
@@ -166,7 +168,7 @@ export default function AddProduct() {
           <button 
             type="button"
             onClick={() => setFormData({...formData, is_featured: !formData.is_featured})}
-            className={`p-6 rounded-[2rem] border flex items-center gap-4 transition-all ${formData.is_featured ? 'bg-amber-50 border-amber-200' : 'bg-white border-gray-100'}`}
+            className={`p-6 rounded-[2rem] border flex items-center gap-4 transition-all ${formData.is_featured ? 'bg-amber-50 border-amber-200' : 'bg-white border-gray-100 shadow-sm'}`}
           >
             <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${formData.is_featured ? 'bg-amber-400 text-white' : 'bg-gray-100 text-gray-400'}`}>
               <Sparkles size={18} />
@@ -180,7 +182,7 @@ export default function AddProduct() {
           <button 
             type="button"
             onClick={() => setFormData({...formData, is_clearance: !formData.is_clearance})}
-            className={`p-6 rounded-[2rem] border flex items-center gap-4 transition-all ${formData.is_clearance ? 'bg-red-50 border-red-200' : 'bg-white border-gray-100'}`}
+            className={`p-6 rounded-[2rem] border flex items-center gap-4 transition-all ${formData.is_clearance ? 'bg-red-50 border-red-200' : 'bg-white border-gray-100 shadow-sm'}`}
           >
             <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${formData.is_clearance ? 'bg-red-500 text-white' : 'bg-gray-100 text-gray-400'}`}>
               <Tag size={18} />
@@ -194,7 +196,7 @@ export default function AddProduct() {
 
         <div className="space-y-4">
           <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Description</label>
-          <textarea rows={4} className="w-full p-6 bg-white border border-gray-100 rounded-[2rem] text-sm font-bold outline-none resize-none focus:ring-4 focus:ring-black/5" placeholder="Add the product description..." value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} />
+          <textarea rows={4} className="w-full p-6 bg-white border border-gray-100 rounded-[2rem] text-sm font-bold outline-none resize-none focus:ring-4 focus:ring-black/5 shadow-sm" placeholder="Tell the story of this material..." value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} />
         </div>
 
         <button disabled={loading} className="w-full bg-black text-white py-8 rounded-[2rem] font-black text-[11px] uppercase tracking-widest hover:bg-gray-800 transition-all flex items-center justify-center gap-3 shadow-2xl active:scale-95 disabled:bg-gray-200">

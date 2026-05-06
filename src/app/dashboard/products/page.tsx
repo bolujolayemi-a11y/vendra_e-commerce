@@ -184,14 +184,14 @@ export default function AddProduct() {
             </div>
             <div className="text-left">
               <p className="text-[10px] font-black uppercase tracking-widest">Clearance</p>
-              <p className="text-[9px] text-gray-400 font-bold uppercase">Sale Section</p>
+              <p className="text-[9px] text-gray-400 font-bold uppercase">Sales Section</p>
             </div>
           </button>
         </div>
 
         <div className="space-y-4">
           <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Description</label>
-          <textarea rows={4} className="w-full p-6 bg-white border border-gray-100 rounded-[2rem] text-sm font-bold outline-none resize-none focus:ring-4 focus:ring-black/5 shadow-sm" placeholder="What makes this item special?" value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} />
+          <textarea rows={4} className="w-full p-6 bg-white border border-gray-100 rounded-[2rem] text-sm font-bold outline-none resize-none focus:ring-4 focus:ring-black/5 shadow-sm" placeholder="Add product description" value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} />
         </div>
 
         <button disabled={loading} className="w-full bg-black text-white py-8 rounded-[2.5rem] font-black text-[11px] uppercase tracking-widest hover:bg-gray-800 transition-all flex items-center justify-center gap-3 shadow-2xl active:scale-95 disabled:bg-gray-200">

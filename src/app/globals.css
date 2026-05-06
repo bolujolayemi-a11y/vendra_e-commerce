@@ -1,23 +1,18 @@
 @import "tailwindcss";
 
 @theme {
-  /* The "Ink" Black */
+  /* ... your existing colors ... */
   --color-vendra-black: #1a1a1a;
-  
-  /* Premium Neutrals */
-  --color-vendra-paper: #fbfbf9;   /* Warm off-white for backgrounds */
-  --color-vendra-sand: #f4f4f0;    /* For secondary sections/cards */
+  --color-vendra-paper: #fbfbf9;
+  --color-vendra-sand: #f4f4f0;
   --color-vendra-border: #eeeeee;
-  
-  /* Accents (Use sparingly for a "Pop") */
-  --color-vendra-accent: #d4af37;  /* Muted Gold for 'Featured' badges */
-  --color-vendra-success: #25d366; /* WhatsApp Green */
+  --color-vendra-accent: #d4af37;
+  --color-vendra-success: #25d366;
 
   /* Depth */
   --shadow-vendra-soft: 0 8px 30px rgba(0, 0, 0, 0.04);
   --shadow-vendra-float: 0 20px 40px rgba(0, 0, 0, 0.08);
 
-  
   /* Typography */
   --font-sans: "Inter", ui-sans-serif, system-ui;
   
@@ -29,6 +24,25 @@
   background-color: var(--color-vendra-paper);
   color: var(--color-vendra-black);
   -webkit-font-smoothing: antialiased;
+  
+  /* 1. Fix Word/Letter Spacing Globals */
+  letter-spacing: -0.01em; /* Slight tightening for large headings */
+  line-height: 1.6;        /* Breathable lines for paragraphs */
+}
+
+/* 2. Specific fix for those Bold Uppercase labels you use */
+.tracking-widest {
+  letter-spacing: 0.2em !important; /* Forces breathing room for labels */
+}
+
+.tracking-tighter {
+  letter-spacing: -0.05em !important; /* Elegant overlap for big titles */
+}
+
+/* 3. Global Paragraph Spacing */
+p {
+  margin-bottom: 1.25rem;
+  line-height: 1.7; /* Extra leading for better readability */
 }
 
 /* Make images look premium */
@@ -37,7 +51,6 @@ img {
   transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Selection color - The "Boutique" feel */
 ::selection {
   background: var(--color-vendra-black);
   color: white;

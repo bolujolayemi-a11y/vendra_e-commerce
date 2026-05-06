@@ -13,7 +13,9 @@ import {
   ExternalLink,
   AlertTriangle,
   Trash2,
-  FileText 
+  FileText,
+  Upload,
+  Image as ImageIcon 
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -23,11 +25,17 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [message, setMessage] = useState("");
+  
+  // Logo States
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+
   const [formData, setFormData] = useState({
     name: '',
     whatsapp_number: '',
     paystack_public_key: '',
-    description: ''
+    description: '',
+    logo_url: ''
   });
 
   useEffect(() => {
@@ -45,8 +53,10 @@ export default function SettingsPage() {
             name: data.name || '',
             whatsapp_number: data.whatsapp_number || '',
             paystack_public_key: data.paystack_public_key || '',
-            description: data.description || ''
+            description: data.description || '',
+            logo_url: data.logo_url || ''
           });
+          if (data.logo_url) setLogoPreview(data.logo_url);
         }
       }
       setLoading(false);
@@ -54,30 +64,64 @@ export default function SettingsPage() {
     getStoreSettings();
   }, []);
 
+  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      if (file.size > 2 * 1024 * 1024) return alert("Logo must be under 2MB");
+      setLogoFile(file);
+      setLogoPreview(URL.createObjectURL(file));
+    }
+  };
+
   const handleUpdateStore = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
     setMessage("");
 
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    const { error } = await supabase
-      .from('stores')
-      .update({
-        name: formData.name,
-        whatsapp_number: formData.whatsapp_number,
-        paystack_public_key: formData.paystack_public_key,
-        description: formData.description
-      })
-      .eq('owner_id', user?.id);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
 
-    if (error) {
-      alert(error.message);
-    } else {
+      let finalLogoUrl = formData.logo_url;
+
+      // 1. Upload Logo if a new file is chosen
+      if (logoFile) {
+        const fileExt = logoFile.name.split('.').pop();
+        // Path matches our Policy: bucket/user_id/filename
+        const filePath = `${user.id}/logo-${Date.now()}.${fileExt}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('logo')
+          .upload(filePath, logoFile, { upsert: true });
+
+        if (uploadError) throw uploadError;
+
+        const { data: urlData } = supabase.storage.from('logo').getPublicUrl(filePath);
+        finalLogoUrl = urlData.publicUrl;
+      }
+
+      // 2. Update Database
+      const { error } = await supabase
+        .from('stores')
+        .update({
+          name: formData.name,
+          whatsapp_number: formData.whatsapp_number,
+          paystack_public_key: formData.paystack_public_key,
+          description: formData.description,
+          logo_url: finalLogoUrl
+        })
+        .eq('owner_id', user.id);
+
+      if (error) throw error;
+
       setMessage("Settings updated successfully!");
+      setFormData(prev => ({ ...prev, logo_url: finalLogoUrl }));
       setTimeout(() => setMessage(""), 3000);
+    } catch (error: any) {
+      alert("Error saving: " + error.message);
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
   };
 
   const handleDeleteAccount = async () => {
@@ -123,10 +167,44 @@ export default function SettingsPage() {
 
       <div className="mb-10">
         <h1 className="text-4xl font-black uppercase tracking-tighter text-black">Store Settings</h1>
-        <p className="text-gray-500 font-medium">Update your business profile and payment integrations.</p>
+        <p className="text-gray-500 font-medium">Refine your brand identity and integrations.</p>
       </div>
 
       <form onSubmit={handleUpdateStore} className="space-y-8">
+        
+        {/* BRAND LOGO SECTION */}
+        <section className="bg-white p-8 rounded-[2rem] border border-gray-100 shadow-sm">
+          <div className="flex items-center gap-3 mb-8">
+            <div className="bg-amber-50 text-amber-600 p-2 rounded-lg"><ImageIcon size={20}/></div>
+            <h2 className="text-lg font-black uppercase tracking-tight text-black">Brand Identity</h2>
+          </div>
+
+          <div className="flex flex-col md:flex-row items-center gap-8">
+            <div className="relative group">
+              <div className="w-32 h-32 rounded-full bg-gray-50 border-2 border-dashed border-gray-200 flex items-center justify-center overflow-hidden shadow-inner">
+                {logoPreview ? (
+                  <img src={logoPreview} className="w-full h-full object-cover" alt="Logo preview" />
+                ) : (
+                  <Store className="text-gray-300" size={40} />
+                )}
+              </div>
+              <label className="absolute inset-0 rounded-full bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer text-white text-[10px] font-black uppercase tracking-widest text-center px-4">
+                <div className="flex flex-col items-center">
+                  <Upload size={20} className="mb-2" />
+                  <span>Update Logo</span>
+                </div>
+                <input type="file" accept="image/*" onChange={handleLogoChange} className="hidden" />
+              </label>
+            </div>
+            <div className="text-center md:text-left space-y-2">
+              <p className="font-black uppercase text-xs tracking-widest text-black">Boutique Logo</p>
+              <p className="text-gray-400 text-[10px] font-bold uppercase leading-relaxed max-w-[240px]">
+                Square images (500x500px) work best. PNG or JPG supported.
+              </p>
+            </div>
+          </div>
+        </section>
+
         {/* Business Info Section */}
         <section className="bg-white p-8 rounded-[2rem] border border-gray-100 shadow-sm">
           <div className="flex items-center gap-3 mb-6">
@@ -161,7 +239,7 @@ export default function SettingsPage() {
               <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 block">Store Description</label>
               <textarea 
                 rows={3}
-                className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl outline-none focus:ring-2 focus:ring-black font-medium text-black"
+                className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl outline-none focus:ring-2 focus:ring-black font-medium text-black resize-none"
                 value={formData.description}
                 onChange={(e) => setFormData({...formData, description: e.target.value})}
               />
@@ -248,7 +326,7 @@ export default function SettingsPage() {
           <h2 className="text-lg font-black uppercase tracking-tight text-red-600">Danger Zone</h2>
         </div>
         <p className="text-sm text-red-500 font-medium mb-6">
-          Once you delete your account, there is no going back.
+          Once you delete your account, there is no going back. All store data will be erased.
         </p>
         <button 
           onClick={handleDeleteAccount}

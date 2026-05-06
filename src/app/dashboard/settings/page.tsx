@@ -196,7 +196,7 @@ export default function SettingsPage() {
             <div className="text-center md:text-left space-y-2">
               <p className="font-black uppercase text-xs tracking-widest text-black">Store Logo</p>
               <p className="text-gray-400 text-[10px] font-bold uppercase leading-relaxed max-w-[240px]">
-                Square images work best. Tap to upload or hover to remove your current identity.
+                Square images work best. JPEG, JPG or PNG supported.
               </p>
             </div>
           </div>

@@ -15,8 +15,7 @@ import {
   Trash2,
   FileText,
   Upload,
-  Image as ImageIcon,
-  X 
+  Image as ImageIcon 
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -68,7 +67,16 @@ export default function SettingsPage() {
     }
   };
 
-  const handleRemoveLogo = () => {
+  const handleRemoveLogo = async () => {
+    // 1. If there's an existing URL, attempt to delete from storage bucket
+    if (formData.logo_url) {
+      const currentPath = formData.logo_url.split('/logo/').pop();
+      if (currentPath) {
+        await supabase.storage.from('logo').remove([currentPath]);
+      }
+    }
+
+    // 2. Reset local states
     setLogoFile(null);
     setLogoPreview(null);
     setFormData(prev => ({ ...prev, logo_url: '' }));
@@ -101,7 +109,7 @@ export default function SettingsPage() {
           whatsapp_number: formData.whatsapp_number,
           paystack_public_key: formData.paystack_public_key,
           description: formData.description,
-          logo_url: finalLogoUrl // This will be '' if handleRemoveLogo was clicked
+          logo_url: finalLogoUrl 
         })
         .eq('owner_id', user.id);
 
@@ -141,63 +149,60 @@ export default function SettingsPage() {
 
   return (
     <div className="max-w-4xl mx-auto py-12 px-6 pb-32">
-      <Link href="/dashboard" className="flex items-center gap-2 text-gray-400 hover:text-black mb-8 font-black uppercase text-xs tracking-widest transition">
+      <Link href="/dashboard" className="flex items-center gap-2 text-gray-400 hover:text-black mb-8 font-bold uppercase text-[10px] tracking-widest transition">
         <ChevronLeft size={18} /> Dashboard
       </Link>
 
       <div className="mb-10">
-        <h1 className="text-4xl font-black uppercase tracking-tighter text-black">Store Settings</h1>
+        <h1 className="text-4xl font-extrabold uppercase tracking-tight text-black">Store Settings</h1>
         <p className="text-gray-500 font-medium leading-relaxed">Refine your brand identity and integrations.</p>
       </div>
 
       <form onSubmit={handleUpdateStore} className="space-y-8">
         
-        {/* BRAND LOGO SECTION WITH DELETE FEATURE */}
+        {/* BRAND LOGO SECTION */}
         <section className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm">
           <div className="flex items-center gap-3 mb-8">
             <div className="bg-amber-50 text-amber-600 p-2 rounded-lg"><ImageIcon size={20}/></div>
-            <h2 className="text-lg font-black uppercase tracking-tight text-black">Brand Identity</h2>
+            <h2 className="text-lg font-bold uppercase tracking-tight text-black">Brand Identity</h2>
           </div>
 
-          <div className="flex flex-col md:flex-row items-center gap-8">
-            <div className="relative group w-32 h-32">
-              <div className="w-full h-full rounded-full bg-gray-50 border-2 border-dashed border-gray-200 flex items-center justify-center overflow-hidden shadow-inner relative">
-                {logoPreview ? (
-                  <img src={logoPreview} className="w-full h-full object-cover" alt="Logo preview" />
-                ) : (
-                  <Store className="text-gray-300" size={40} />
-                )}
-                
-                {/* REMOVE BUTTON - Visible on Hover if logo exists */}
+          <div className="flex flex-col md:flex-row items-center gap-10">
+            {/* Logo Preview Circle */}
+            <div className="w-32 h-32 rounded-full bg-gray-50 border-2 border-dashed border-gray-200 flex items-center justify-center overflow-hidden shadow-inner relative shrink-0">
+              {logoPreview ? (
+                <img src={logoPreview} className="w-full h-full object-cover" alt="Logo preview" />
+              ) : (
+                <Store className="text-gray-300" size={40} />
+              )}
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex flex-col gap-4 w-full md:w-auto">
+              <div className="flex flex-wrap gap-3 justify-center md:justify-start">
+                <label className="cursor-pointer bg-black text-white px-6 py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 hover:bg-gray-800 transition active:scale-95">
+                  <Upload size={14} />
+                  {logoPreview ? 'Change Logo' : 'Upload Logo'}
+                  <input type="file" accept="image/*" onChange={handleLogoChange} className="hidden" />
+                </label>
+
                 {logoPreview && (
                   <button 
                     type="button"
                     onClick={handleRemoveLogo}
-                    className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white gap-1"
+                    className="bg-red-50 text-red-600 px-6 py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 hover:bg-red-100 transition active:scale-95 border border-red-100"
                   >
-                    <Trash2 size={20} />
-                    <span className="text-[8px] font-black uppercase tracking-widest">Remove</span>
+                    <Trash2 size={14} />
+                    Remove
                   </button>
                 )}
               </div>
-
-              {/* UPLOAD OVERLAY - Only shown if no preview */}
-              {!logoPreview && (
-                <label className="absolute inset-0 rounded-full bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer text-white text-[10px] font-black uppercase tracking-widest text-center px-4">
-                  <div className="flex flex-col items-center">
-                    <Upload size={20} className="mb-2" />
-                    <span>Upload Logo</span>
-                  </div>
-                  <input type="file" accept="image/*" onChange={handleLogoChange} className="hidden" />
-                </label>
-              )}
-            </div>
-
-            <div className="text-center md:text-left space-y-2">
-              <p className="font-black uppercase text-xs tracking-widest text-black">Store Logo</p>
-              <p className="text-gray-400 text-[10px] font-bold uppercase leading-relaxed max-w-[240px]">
-                Square images work best. JPEG, JPG or PNG supported.
-              </p>
+              
+              <div className="text-center md:text-left">
+                <p className="text-gray-400 text-[9px] font-bold uppercase tracking-[0.2em] leading-relaxed max-w-[280px]">
+                  Square images work best. JPEG, JPG or PNG supported.
+                </p>
+              </div>
             </div>
           </div>
         </section>
@@ -206,12 +211,12 @@ export default function SettingsPage() {
         <section className="bg-white p-8 rounded-[2rem] border border-gray-100 shadow-sm">
           <div className="flex items-center gap-3 mb-6">
             <div className="bg-blue-50 text-blue-600 p-2 rounded-lg"><Store size={20}/></div>
-            <h2 className="text-lg font-black uppercase tracking-tight text-black">Business Profile</h2>
+            <h2 className="text-lg font-bold uppercase tracking-tight text-black">Business Profile</h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 block">Store Name</label>
+              <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2 block">Store Name</label>
               <input 
                 type="text"
                 className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl outline-none focus:ring-2 focus:ring-black font-bold text-black"
@@ -220,7 +225,7 @@ export default function SettingsPage() {
               />
             </div>
             <div>
-              <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 block">WhatsApp Number</label>
+              <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2 block">WhatsApp Number</label>
               <div className="relative">
                 <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" size={16} />
                 <input 
@@ -233,7 +238,7 @@ export default function SettingsPage() {
               </div>
             </div>
             <div className="md:col-span-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 block">Store Description</label>
+              <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2 block">Store Description</label>
               <textarea 
                 rows={3}
                 className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl outline-none focus:ring-2 focus:ring-black font-medium text-black resize-none"
@@ -249,19 +254,19 @@ export default function SettingsPage() {
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
                 <div className="bg-green-50 text-green-600 p-2 rounded-lg"><Key size={20}/></div>
-                <h2 className="text-lg font-black uppercase tracking-tight text-black">Paystack Integration</h2>
+                <h2 className="text-lg font-bold uppercase tracking-tight text-black">Paystack Integration</h2>
             </div>
             <Link 
                 href="https://dashboard.paystack.com/#/settings/developer" 
                 target="_blank" 
-                className="text-[10px] font-black text-blue-500 hover:underline flex items-center gap-1"
+                className="text-[10px] font-bold text-blue-500 hover:underline flex items-center gap-1"
             >
                 Get your key <ExternalLink size={10} />
             </Link>
           </div>
 
           <div>
-            <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 block">Public Key</label>
+            <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2 block">Public Key</label>
             <input 
               type="password"
               placeholder="pk_test_xxxxxxxxxxxx"
@@ -282,55 +287,54 @@ export default function SettingsPage() {
             <button 
                 disabled={saving}
                 type="submit"
-                className="ml-auto bg-black text-white px-10 py-5 rounded-2xl font-black uppercase tracking-widest text-sm hover:bg-gray-800 transition active:scale-95 flex items-center gap-3 shadow-xl shadow-black/20"
+                className="ml-auto bg-black text-white px-10 py-5 rounded-2xl font-bold uppercase tracking-widest text-sm hover:bg-gray-800 transition active:scale-95 flex items-center gap-3 shadow-xl shadow-black/20"
             >
                 {saving ? <Loader2 className="animate-spin" /> : <><Save size={18} /> Save Settings</>}
             </button>
         </div>
       </form>
 
-      {/* LEGAL DOCUMENTS SECTION */}
+      {/* LEGAL DOCUMENTS */}
       <section className="mt-16 bg-white p-8 rounded-[2rem] border border-gray-100 shadow-sm">
         <div className="flex items-center gap-3 mb-6">
           <div className="bg-gray-50 text-gray-500 p-2 rounded-lg"><FileText size={20}/></div>
-          <h2 className="text-lg font-black uppercase tracking-tight text-black">Legal & Transparency</h2>
+          <h2 className="text-lg font-bold uppercase tracking-tight text-black">Legal & Transparency</h2>
         </div>
         
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <Link href="/about?from=dashboard" className="p-4 rounded-xl border border-gray-50 hover:border-black transition flex items-center justify-between group">
-            <span className="text-xs font-black uppercase tracking-widest text-gray-400 group-hover:text-black">About Vendra</span>
+            <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400 group-hover:text-black">About Vendra</span>
             <ExternalLink size={14} className="text-gray-300 group-hover:text-black" />
           </Link>
 
           <Link href="/agreement?from=dashboard" className="p-4 rounded-xl border border-gray-50 hover:border-black transition flex items-center justify-between group">
-            <span className="text-xs font-black uppercase tracking-widest text-gray-400 group-hover:text-black">User Agreement</span>
+            <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400 group-hover:text-black">User Agreement</span>
             <ExternalLink size={14} className="text-gray-300 group-hover:text-black" />
           </Link>
 
           <Link href="/privacy?from=dashboard" className="p-4 rounded-xl border border-gray-50 hover:border-black transition flex items-center justify-between group">
-            <span className="text-xs font-black uppercase tracking-widest text-gray-400 group-hover:text-black">Privacy Policy</span>
+            <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400 group-hover:text-black">Privacy Policy</span>
             <ExternalLink size={14} className="text-gray-300 group-hover:text-black" />
           </Link>
         </div>
       </section>
 
-      {/* DANGER ZONE SECTION */}
+      {/* DANGER ZONE */}
       <hr className="my-16 border-gray-100" />
-
       <section className="bg-red-50/30 p-8 rounded-[2rem] border border-red-100">
         <div className="flex items-center gap-3 mb-4">
           <div className="bg-red-100 text-red-600 p-2 rounded-lg"><AlertTriangle size={20}/></div>
-          <h2 className="text-lg font-black uppercase tracking-tight text-red-600">Danger Zone</h2>
+          <h2 className="text-lg font-bold uppercase tracking-tight text-red-600">Danger Zone</h2>
         </div>
-        <p className="text-sm text-red-500 font-medium mb-6">
-          Once you delete your account, there is no going back. All store data will be erased.
+        <p className="text-sm text-red-500 font-medium mb-6 leading-relaxed">
+          Once you delete your account, there is no going back. All store data, products, and inventory history will be permanently erased.
         </p>
         <button 
           onClick={handleDeleteAccount}
           disabled={deleting}
-          className="bg-white text-red-600 border border-red-200 px-8 py-4 rounded-xl font-black uppercase tracking-widest text-xs hover:bg-red-600 hover:text-white transition-all flex items-center gap-2 active:scale-95 disabled:opacity-50"
+          className="bg-white text-red-600 border border-red-200 px-8 py-4 rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-red-600 hover:text-white transition-all flex items-center gap-2 active:scale-95 disabled:opacity-50"
         >
-          {deleting ? <Loader2 className="animate-spin" size={16} /> : <><Trash2 size={16} /> Delete My Account Permanently</>}
+          {deleting ? <Loader2 className="animate-spin" size={16} /> : <><Trash2 size={16} /> Delete Account Permanently</>}
         </button>
       </section>
     </div>

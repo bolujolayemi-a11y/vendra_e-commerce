@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { 
   LayoutDashboard, Settings, Plus, ExternalLink, 
   Loader2, ClipboardList, CreditCard, CheckCircle2,
-  LogOut, Hash, FileText
+  LogOut, Hash, Menu, X 
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -14,6 +14,7 @@ export default function Dashboard() {
   const [productCount, setProductCount] = useState(0);
   const [totalSales, setTotalSales] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [isMenuOpen, setIsMenuOpen] = useState(false); // Mobile menu state
   const router = useRouter();
 
   useEffect(() => {
@@ -57,31 +58,66 @@ export default function Dashboard() {
   );
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      {/* Sidebar */}
-      <aside className="w-64 bg-white border-r border-gray-100 p-6 flex flex-col justify-between font-medium text-gray-500">
+    <div className="flex min-h-screen bg-gray-50 flex-col md:flex-row">
+      
+      {/* MOBILE HEADER & HAMBURGER */}
+      <div className="md:hidden flex items-center justify-between p-6 bg-white border-b border-gray-100">
+        <h2 className="text-xl font-black uppercase tracking-tighter text-black">Vendra</h2>
+        <button 
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
+          className="p-2 text-black hover:bg-gray-100 rounded-lg transition"
+        >
+          {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
+      </div>
+
+      {/* SIDEBAR */}
+      <aside className={`
+        fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-100 p-6 flex flex-col justify-between font-medium text-gray-500
+        transition-transform duration-300 ease-in-out
+        ${isMenuOpen ? 'translate-x-0' : '-translate-x-full'}
+        md:relative md:translate-x-0
+      `}>
         <div className="flex flex-col gap-8">
-          <h2 className="text-xl font-black uppercase tracking-tighter text-black">Vendra</h2>
+          <h2 className="hidden md:block text-xl font-black uppercase tracking-tighter text-black">Vendra</h2>
           <nav className="flex flex-col gap-2">
-            <Link href="/dashboard" className="flex items-center gap-3 p-3 bg-black text-white rounded-xl font-bold shadow-lg shadow-black/10">
+            <Link 
+              href="/dashboard" 
+              onClick={() => setIsMenuOpen(false)}
+              className="flex items-center gap-3 p-3 bg-black text-white rounded-xl font-bold shadow-lg shadow-black/10"
+            >
               <LayoutDashboard size={20} /> Overview
             </Link>
             
-            {/* UPDATED PATH: plural /products */}
-            <Link href="/dashboard/products" className="flex items-center gap-3 p-3 hover:bg-gray-100 rounded-lg transition">
+            <Link 
+              href="/dashboard/products" 
+              onClick={() => setIsMenuOpen(false)}
+              className="flex items-center gap-3 p-3 hover:bg-gray-100 rounded-lg transition"
+            >
               <Plus size={20} /> Add Product
             </Link>
             
-            {/* UPDATED PATH: plural /products/manage */}
-            <Link href="/dashboard/products/manage" className="flex items-center gap-3 p-3 hover:bg-gray-100 rounded-lg transition">
+            <Link 
+              href="/dashboard/products/manage" 
+              onClick={() => setIsMenuOpen(false)}
+              className="flex items-center gap-3 p-3 hover:bg-gray-100 rounded-lg transition"
+            >
               <ClipboardList size={20} /> Manage Stock
             </Link>
             
-            <Link href="/dashboard/orders" className="flex items-center gap-3 p-3 hover:bg-gray-100 rounded-lg transition">
+            <Link 
+              href="/dashboard/orders" 
+              onClick={() => setIsMenuOpen(false)}
+              className="flex items-center gap-3 p-3 hover:bg-gray-100 rounded-lg transition"
+            >
               <Hash size={20} /> Order History
             </Link>
             
-            <Link href="/dashboard/settings" className="flex items-center gap-3 p-3 hover:bg-gray-100 rounded-lg transition">
+            <Link 
+              href="/dashboard/settings" 
+              onClick={() => setIsMenuOpen(false)}
+              className="flex items-center gap-3 p-3 hover:bg-gray-100 rounded-lg transition"
+            >
               <Settings size={20} /> Settings
             </Link>
           </nav>
@@ -92,14 +128,27 @@ export default function Dashboard() {
         </button>
       </aside>
 
-      <main className="flex-1 p-10 overflow-y-auto">
-        <header className="flex justify-between items-center mb-10">
+      {/* OVERLAY FOR MOBILE (to close menu when clicking outside) */}
+      {isMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-black/20 z-40 md:hidden backdrop-blur-sm"
+          onClick={() => setIsMenuOpen(false)}
+        />
+      )}
+
+      {/* MAIN CONTENT */}
+      <main className="flex-1 p-6 md:p-10 overflow-y-auto">
+        <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-10">
           <div>
             <h1 className="text-3xl font-black text-black uppercase tracking-tight leading-none mb-2">{store?.name || "My Shop"}</h1>
             <p className="text-gray-400 text-xs font-bold uppercase tracking-widest leading-relaxed">Control Center &bull; Live at {store?.slug}.vendra.ng</p>
           </div>
-          <div className="flex gap-4">
-            <Link href={`/s/${store?.slug}`} target="_blank" className="flex items-center gap-2 px-6 py-3 bg-white border border-gray-200 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-gray-50 transition shadow-sm">
+          <div className="flex w-full md:w-auto">
+            <Link 
+              href={`/s/${store?.slug}`} 
+              target="_blank" 
+              className="w-full md:w-auto flex items-center justify-center gap-2 px-6 py-3 bg-white border border-gray-200 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-gray-50 transition shadow-sm"
+            >
               <ExternalLink size={14} /> View Store
             </Link>
           </div>
@@ -107,7 +156,7 @@ export default function Dashboard() {
 
         {/* Status Alert for Paystack */}
         {!store?.paystack_public_key && (
-          <div className="bg-orange-50 border border-orange-100 p-8 rounded-[2.5rem] mb-10 flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="bg-orange-50 border border-orange-100 p-8 rounded-[2.5rem] mb-10 flex flex-col lg:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-5">
               <div className="bg-orange-500 p-4 rounded-[1.5rem] text-white shadow-xl shadow-orange-500/20"><CreditCard size={24} /></div>
               <div>
@@ -115,7 +164,7 @@ export default function Dashboard() {
                 <p className="text-orange-800/70 text-sm font-medium">Your customers cannot checkout yet. Connect your Paystack Public Key to enable sales.</p>
               </div>
             </div>
-            <Link href="/dashboard/settings" className="w-full md:w-auto text-center text-orange-900 text-[10px] font-black uppercase tracking-[0.2em] bg-white px-8 py-4 rounded-xl border border-orange-200 hover:bg-orange-100 transition shadow-sm">Connect Now</Link>
+            <Link href="/dashboard/settings" className="w-full lg:w-auto text-center text-orange-900 text-[10px] font-black uppercase tracking-[0.2em] bg-white px-8 py-4 rounded-xl border border-orange-200 hover:bg-orange-100 transition shadow-sm">Connect Now</Link>
           </div>
         )}
 
@@ -139,7 +188,7 @@ export default function Dashboard() {
         </div>
 
         {/* Action Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <Link href="/dashboard/products" className="group bg-white p-10 rounded-[3rem] border border-gray-100 shadow-sm hover:border-black transition-all hover:shadow-2xl">
                 <Plus className="text-blue-600 mb-8" size={32} />
                 <h3 className="text-xl font-black uppercase tracking-tight mb-2">Add Item</h3>

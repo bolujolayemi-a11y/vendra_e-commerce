@@ -15,7 +15,8 @@ import {
   Trash2,
   FileText,
   Upload,
-  Image as ImageIcon 
+  Image as ImageIcon,
+  X 
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -26,7 +27,6 @@ export default function SettingsPage() {
   const [deleting, setDeleting] = useState(false);
   const [message, setMessage] = useState("");
   
-  // Logo States
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
 
@@ -42,12 +42,7 @@ export default function SettingsPage() {
     async function getStoreSettings() {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        const { data } = await supabase
-          .from('stores')
-          .select('*')
-          .eq('owner_id', user.id)
-          .single();
-        
+        const { data } = await supabase.from('stores').select('*').eq('owner_id', user.id).single();
         if (data) {
           setFormData({
             name: data.name || '',
@@ -73,6 +68,12 @@ export default function SettingsPage() {
     }
   };
 
+  const handleRemoveLogo = () => {
+    setLogoFile(null);
+    setLogoPreview(null);
+    setFormData(prev => ({ ...prev, logo_url: '' }));
+  };
+
   const handleUpdateStore = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
@@ -84,23 +85,15 @@ export default function SettingsPage() {
 
       let finalLogoUrl = formData.logo_url;
 
-      // 1. Upload Logo if a new file is chosen
       if (logoFile) {
         const fileExt = logoFile.name.split('.').pop();
-        // Path matches our Policy: bucket/user_id/filename
         const filePath = `${user.id}/logo-${Date.now()}.${fileExt}`;
-
-        const { error: uploadError } = await supabase.storage
-          .from('logo')
-          .upload(filePath, logoFile, { upsert: true });
-
+        const { error: uploadError } = await supabase.storage.from('logo').upload(filePath, logoFile, { upsert: true });
         if (uploadError) throw uploadError;
-
         const { data: urlData } = supabase.storage.from('logo').getPublicUrl(filePath);
         finalLogoUrl = urlData.publicUrl;
       }
 
-      // 2. Update Database
       const { error } = await supabase
         .from('stores')
         .update({
@@ -108,7 +101,7 @@ export default function SettingsPage() {
           whatsapp_number: formData.whatsapp_number,
           paystack_public_key: formData.paystack_public_key,
           description: formData.description,
-          logo_url: finalLogoUrl
+          logo_url: finalLogoUrl // This will be '' if handleRemoveLogo was clicked
         })
         .eq('owner_id', user.id);
 
@@ -125,29 +118,16 @@ export default function SettingsPage() {
   };
 
   const handleDeleteAccount = async () => {
-    const confirmed = window.confirm(
-      "CRITICAL: Are you sure? This will permanently delete your store, all products, and your account. This cannot be undone."
-    );
-
-    if (!confirmed) return;
-
+    if (!window.confirm("CRITICAL: Are you sure? This is permanent.")) return;
     setDeleting(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
-
-      const { error: storeError } = await supabase
-        .from('stores')
-        .delete()
-        .eq('owner_id', user.id);
-
-      if (storeError) throw storeError;
+      await supabase.from('stores').delete().eq('owner_id', user.id);
       await supabase.auth.signOut();
       router.push('/');
-      alert("Account successfully deleted.");
-      
     } catch (error: any) {
-      alert("Error deleting account: " + error.message);
+      alert("Error: " + error.message);
     } finally {
       setDeleting(false);
     }
@@ -167,39 +147,56 @@ export default function SettingsPage() {
 
       <div className="mb-10">
         <h1 className="text-4xl font-black uppercase tracking-tighter text-black">Store Settings</h1>
-        <p className="text-gray-500 font-medium">Refine your brand identity and integrations.</p>
+        <p className="text-gray-500 font-medium leading-relaxed">Refine your brand identity and integrations.</p>
       </div>
 
       <form onSubmit={handleUpdateStore} className="space-y-8">
         
-        {/* BRAND LOGO SECTION */}
-        <section className="bg-white p-8 rounded-[2rem] border border-gray-100 shadow-sm">
+        {/* BRAND LOGO SECTION WITH DELETE FEATURE */}
+        <section className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm">
           <div className="flex items-center gap-3 mb-8">
             <div className="bg-amber-50 text-amber-600 p-2 rounded-lg"><ImageIcon size={20}/></div>
             <h2 className="text-lg font-black uppercase tracking-tight text-black">Brand Identity</h2>
           </div>
 
           <div className="flex flex-col md:flex-row items-center gap-8">
-            <div className="relative group">
-              <div className="w-32 h-32 rounded-full bg-gray-50 border-2 border-dashed border-gray-200 flex items-center justify-center overflow-hidden shadow-inner">
+            <div className="relative group w-32 h-32">
+              <div className="w-full h-full rounded-full bg-gray-50 border-2 border-dashed border-gray-200 flex items-center justify-center overflow-hidden shadow-inner relative">
                 {logoPreview ? (
                   <img src={logoPreview} className="w-full h-full object-cover" alt="Logo preview" />
                 ) : (
                   <Store className="text-gray-300" size={40} />
                 )}
+                
+                {/* REMOVE BUTTON - Visible on Hover if logo exists */}
+                {logoPreview && (
+                  <button 
+                    type="button"
+                    onClick={handleRemoveLogo}
+                    className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white gap-1"
+                  >
+                    <Trash2 size={20} />
+                    <span className="text-[8px] font-black uppercase tracking-widest">Remove</span>
+                  </button>
+                )}
               </div>
-              <label className="absolute inset-0 rounded-full bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer text-white text-[10px] font-black uppercase tracking-widest text-center px-4">
-                <div className="flex flex-col items-center">
-                  <Upload size={20} className="mb-2" />
-                  <span>Update Logo</span>
-                </div>
-                <input type="file" accept="image/*" onChange={handleLogoChange} className="hidden" />
-              </label>
+
+              {/* UPLOAD OVERLAY - Only shown if no preview */}
+              {!logoPreview && (
+                <label className="absolute inset-0 rounded-full bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer text-white text-[10px] font-black uppercase tracking-widest text-center px-4">
+                  <div className="flex flex-col items-center">
+                    <Upload size={20} className="mb-2" />
+                    <span>Upload Logo</span>
+                  </div>
+                  <input type="file" accept="image/*" onChange={handleLogoChange} className="hidden" />
+                </label>
+              )}
             </div>
+
             <div className="text-center md:text-left space-y-2">
               <p className="font-black uppercase text-xs tracking-widest text-black">Store Logo</p>
               <p className="text-gray-400 text-[10px] font-bold uppercase leading-relaxed max-w-[240px]">
-                Square images (500x500px) work best. JPEG, PNG or JPG supported.
+                Square images work best. Tap to upload or hover to remove your current identity.
               </p>
             </div>
           </div>

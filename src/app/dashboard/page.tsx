@@ -67,13 +67,13 @@ export default function Dashboard() {
               <LayoutDashboard size={20} /> Overview
             </Link>
             
-            {/* UPDATED PATH: /dashboard/product/add */}
-            <Link href="/dashboard/product/add" className="flex items-center gap-3 p-3 hover:bg-gray-100 rounded-lg transition">
+            {/* UPDATED PATH: plural /products */}
+            <Link href="/dashboard/products" className="flex items-center gap-3 p-3 hover:bg-gray-100 rounded-lg transition">
               <Plus size={20} /> Add Product
             </Link>
             
-            {/* UPDATED PATH: /dashboard/product/manage */}
-            <Link href="/dashboard/product/manage" className="flex items-center gap-3 p-3 hover:bg-gray-100 rounded-lg transition">
+            {/* UPDATED PATH: plural /products/manage */}
+            <Link href="/dashboard/products/manage" className="flex items-center gap-3 p-3 hover:bg-gray-100 rounded-lg transition">
               <ClipboardList size={20} /> Manage Stock
             </Link>
             
@@ -140,13 +140,13 @@ export default function Dashboard() {
 
         {/* Action Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Link href="/dashboard/product/add" className="group bg-white p-10 rounded-[3rem] border border-gray-100 shadow-sm hover:border-black transition-all hover:shadow-2xl">
+            <Link href="/dashboard/products" className="group bg-white p-10 rounded-[3rem] border border-gray-100 shadow-sm hover:border-black transition-all hover:shadow-2xl">
                 <Plus className="text-blue-600 mb-8" size={32} />
                 <h3 className="text-xl font-black uppercase tracking-tight mb-2">Add Item</h3>
                 <p className="text-gray-400 text-sm font-medium leading-relaxed">List a new material or accessory to your collection.</p>
             </Link>
 
-            <Link href="/dashboard/product/manage" className="group bg-white p-10 rounded-[3rem] border border-gray-100 shadow-sm hover:border-black transition-all hover:shadow-2xl">
+            <Link href="/dashboard/products/manage" className="group bg-white p-10 rounded-[3rem] border border-gray-100 shadow-sm hover:border-black transition-all hover:shadow-2xl">
                 <ClipboardList className="text-black mb-8" size={32} />
                 <h3 className="text-xl font-black uppercase tracking-tight mb-2">Inventory</h3>
                 <p className="text-gray-400 text-sm font-medium leading-relaxed">Adjust stock levels, set clearance prices, or feature items.</p>

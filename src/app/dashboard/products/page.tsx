@@ -90,8 +90,8 @@ export default function AddProduct() {
 
       if (dbError) throw dbError;
 
-      // REDIRECT FIX: Updated to match your nested path
-      router.push('/dashboard/product/manage'); 
+      // PATH SYNC: Redirecting to the plural 'products' path
+      router.push('/dashboard/products/manage'); 
       router.refresh();
     } catch (err: any) {
       alert("Error: " + err.message);
@@ -102,8 +102,8 @@ export default function AddProduct() {
 
   return (
     <div className="max-w-3xl mx-auto py-16 px-6">
-      {/* LINK FIX: Updated to match your nested path */}
-      <Link href="/dashboard/product/manage" className="inline-flex items-center gap-2 text-gray-400 hover:text-black mb-10 transition font-black uppercase text-[10px] tracking-widest">
+      {/* PATH SYNC: Back link updated to plural */}
+      <Link href="/dashboard/products/manage" className="inline-flex items-center gap-2 text-gray-400 hover:text-black mb-10 transition font-black uppercase text-[10px] tracking-widest">
         <ChevronLeft size={16} /> Back to Inventory
       </Link>
 
@@ -117,15 +117,15 @@ export default function AddProduct() {
         {/* IMAGE UPLOAD */}
         <div className="space-y-4">
           <label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Product Visual</label>
-          <div className={`relative aspect-square md:aspect-video rounded-[3rem] border-2 border-dashed transition-all duration-500 overflow-hidden ${imagePreview ? 'border-transparent' : 'border-gray-200 bg-gray-50 hover:border-black'}`}>
+          <div className={`relative aspect-square md:aspect-video rounded-[3rem] border-2 border-dashed transition-all duration-500 overflow-hidden ${imagePreview ? 'border-transparent' : 'border-gray-200 bg-gray-50 hover:border-black shadow-inner'}`}>
             {imagePreview ? (
               <>
                 <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
-                <button type="button" onClick={() => { setImageFile(null); setImagePreview(null); }} className="absolute top-6 right-6 bg-black text-white p-2 rounded-full shadow-xl"><X size={20}/></button>
+                <button type="button" onClick={() => { setImageFile(null); setImagePreview(null); }} className="absolute top-6 right-6 bg-black text-white p-2 rounded-full shadow-xl hover:scale-110 transition"><X size={20}/></button>
               </>
             ) : (
-              <label className="flex flex-col items-center justify-center h-full cursor-pointer p-10">
-                <Upload size={24} className="mb-4 text-gray-300" />
+              <label className="flex flex-col items-center justify-center h-full cursor-pointer p-10 group">
+                <Upload size={24} className="mb-4 text-gray-300 group-hover:text-black transition-colors" />
                 <p className="text-[10px] font-black uppercase tracking-widest">Upload Photo</p>
                 <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
               </label>

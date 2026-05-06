@@ -56,7 +56,7 @@ export default function ManageProducts() {
 
     } catch (err: any) {
       console.error("Update failed:", err.message);
-      alert("Sync failed. Check your internet connection.");
+      alert("Sync failed. Check your connection.");
       await fetchProducts(); 
     } finally {
       setActionLoading(null);
@@ -64,7 +64,7 @@ export default function ManageProducts() {
   };
 
   const deleteProduct = async (id: string) => {
-    if (!confirm("Permanently remove this fabric from your inventory?")) return;
+    if (!confirm("Permanently remove this fabric?")) return;
     setActionLoading(id);
     await supabase.from('products').delete().eq('id', id);
     setProducts(prev => prev.filter(p => p.id !== id));
@@ -87,7 +87,7 @@ export default function ManageProducts() {
                 <ChevronLeft size={14} /> Back to Dashboard
             </Link>
             <h1 className="text-6xl font-black uppercase tracking-tighter text-black leading-none">Inventory</h1>
-            <p className="text-gray-400 font-bold uppercase text-[10px] tracking-widest">Master Collection</p>
+            <p className="text-gray-400 font-bold uppercase text-[10px] tracking-widest leading-relaxed">Master Collection</p>
         </div>
         
         <div className="bg-black text-white p-6 rounded-[2.5rem] flex items-center gap-6 shadow-2xl">
@@ -205,10 +205,10 @@ export default function ManageProducts() {
         )}
       </div>
 
-      {/* FLOATING ACTION BUTTON - FIXED & BLURRED */}
+      {/* FLOATING ACTION BUTTON - UPDATED LINK (Plural path) */}
       <div className="fixed bottom-10 left-0 right-0 flex justify-center z-[100] pointer-events-none">
         <Link 
-          href="/dashboard/product/add" 
+          href="/dashboard/products" 
           className="pointer-events-auto bg-black/90 backdrop-blur-xl text-white px-10 py-6 rounded-full font-black uppercase text-[10px] tracking-[0.3em] shadow-[0_20px_50px_rgba(0,0,0,0.3)] hover:scale-105 active:scale-95 transition-all flex items-center gap-3 group border border-white/10"
         >
           <Plus size={18} className="group-hover:rotate-90 transition-transform duration-300" /> 

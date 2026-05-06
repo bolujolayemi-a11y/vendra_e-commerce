@@ -72,6 +72,7 @@ export default function ManageProducts() {
 
   return (
     <>
+      {/* --- CONTENT CONTAINER --- */}
       <main className="max-w-6xl mx-auto py-16 px-6 pb-60">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
           <div className="space-y-2">
@@ -96,7 +97,7 @@ export default function ManageProducts() {
           <input 
               type="text"
               placeholder="Search items..."
-              className="w-full pl-16 pr-8 py-6 bg-gray-50 rounded-[2rem] border border-transparent focus:bg-white focus:border-gray-100 outline-none font-bold text-sm transition-all shadow-inner"
+              className="w-full pl-16 pr-8 py-6 bg-gray-50 rounded-[2rem] border border-transparent focus:bg-white focus:border-gray-100 outline-none font-bold text-sm transition-all"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -157,16 +158,14 @@ export default function ManageProducts() {
         </div>
       </main>
 
-      {/* --- THE MASTER FIX: FIXED TO CONTENT PANEL ONLY --- */}
-      <div className="fixed bottom-10 left-0 lg:left-64 right-0 flex justify-center z-[999] pointer-events-none">
-        <Link 
-          href="/dashboard/products" 
-          className="pointer-events-auto bg-black text-white px-10 py-6 rounded-full font-extrabold uppercase text-[10px] tracking-[0.25em] shadow-[0_20px_50px_rgba(0,0,0,0.4)] hover:scale-105 active:scale-95 transition-all flex items-center gap-3 group border border-white/10"
-        >
-          <Plus size={18} className="group-hover:rotate-90 transition-transform duration-300" /> 
-          Add New Item
-        </Link>
-      </div>
+      {/* --- THE FIX: FLOATING BUTTON MOVED OUTSIDE <MAIN> --- */}
+      <Link 
+        href="/dashboard/products" 
+        className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[999] bg-black/90 backdrop-blur-xl text-white px-10 py-6 rounded-full font-extrabold uppercase text-[10px] tracking-[0.25em] shadow-[0_20px_50px_rgba(0,0,0,0.4)] hover:scale-105 active:scale-95 transition-all flex items-center gap-3 group border border-white/10"
+      >
+        <Plus size={18} className="group-hover:rotate-90 transition-transform duration-300" /> 
+        Add New Item
+      </Link>
     </>
   );
 }

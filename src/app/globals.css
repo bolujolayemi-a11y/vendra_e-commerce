@@ -48,7 +48,7 @@ p {
 /* Make images look premium */
 img {
   filter: contrast(1.02) brightness(0.98);
-  transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.3s ease-out;
 }
 
 ::selection {

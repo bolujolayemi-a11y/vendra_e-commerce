@@ -1,11 +1,11 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google"; // Switch to Inter
+import { Instrument_Sans } from "next/font/google"; // Switched to a more elegant, less blocky font
 import "./globals.css";
 
-const inter = Inter({
+const instrument = Instrument_Sans({
   subsets: ["latin"],
-  display: 'swap', // This fixes the preload console error!
-  variable: "--font-inter",
+  display: 'swap',
+  variable: "--font-instrument",
 });
 
 export const metadata: Metadata = {
@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     default: "Vendra | Modern Nigerian Commerce",
     template: "%s | Vendra"
   },
-  description: "Professional storefronts for Nigerian entrepreneurs.",
+  description: "Professional storefronts for Nigerian entrepreneurs. Turn your products into a brand.",
   icons: {
     icon: "/favicon.ico",
     apple: "/apple-touch-icon.png",
@@ -23,7 +23,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
+  maximumScale: 1, // Keeps UI stable on mobile inputs
 };
 
 export default function RootLayout({
@@ -34,9 +34,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} h-full antialiased`}
+      className={`${instrument.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col selection:bg-black selection:text-white">
+      <body className="min-h-full flex flex-col selection:bg-black selection:text-white font-sans">
         {children}
       </body>
     </html>

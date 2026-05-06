@@ -64,7 +64,7 @@ export default function ManageProducts() {
   };
 
   const deleteProduct = async (id: string) => {
-    if (!confirm("Permanently remove this fabric from your inventory?")) return;
+    if (!confirm("Permanently remove this item from your inventory?")) return;
     setActionLoading(id);
     await supabase.from('products').delete().eq('id', id);
     setProducts(prev => prev.filter(p => p.id !== id));
@@ -74,12 +74,13 @@ export default function ManageProducts() {
   if (loading) return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-white space-y-4">
       <Loader2 className="animate-spin text-black" size={40} />
-      <p className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-400 font-sans">Opening Vault</p>
+      <p className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-400">Opening Vault</p>
     </div>
   );
 
   return (
     <>
+      {/* 1. MAIN SCROLLING CONTENT */}
       <main className="max-w-6xl mx-auto py-16 px-6 pb-40">
         {/* HEADER SECTION */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
@@ -147,7 +148,6 @@ export default function ManageProducts() {
                   </div>
 
                   <div className="flex flex-wrap items-center justify-center gap-4 w-full lg:w-auto">
-                    {/* STOCK CONTROL */}
                     <div className="flex items-center bg-gray-50 p-1.5 rounded-[1.8rem] border border-gray-100">
                       <button 
                         onClick={() => updateProduct(product.id, { stock_count: Math.max(0, product.stock_count - 1), is_sold_out: product.stock_count - 1 <= 0 }, 'minus')}
@@ -167,7 +167,6 @@ export default function ManageProducts() {
                       </button>
                     </div>
 
-                    {/* TOGGLES */}
                     <div className="flex gap-2">
                       <button 
                         onClick={() => updateProduct(product.id, { is_featured: !product.is_featured }, 'featured')}
@@ -207,7 +206,7 @@ export default function ManageProducts() {
         </div>
       </main>
 
-      {/* FLOATING ACTION BUTTON - PORTALED OUTSIDE MAIN FLOW */}
+      {/* 2. FIXED FLOATING BUTTON - OUTSIDE THE MAIN CONTAINER */}
       <div className="fixed bottom-10 left-0 right-0 flex justify-center z-[999] pointer-events-none">
         <Link 
           href="/dashboard/products" 

@@ -1,11 +1,12 @@
 import type { Metadata, Viewport } from "next";
-import { Instrument_Sans } from "next/font/google"; // Switched to a more elegant, less blocky font
+import { Instrument_Sans } from "next/font/google"; 
 import "./globals.css";
 
+// 1. Configure the font with the variable name
 const instrument = Instrument_Sans({
   subsets: ["latin"],
   display: 'swap',
-  variable: "--font-instrument",
+  variable: "--font-instrument", // This must match your globals.css
 });
 
 export const metadata: Metadata = {
@@ -23,7 +24,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1, // Keeps UI stable on mobile inputs
+  maximumScale: 1,
 };
 
 export default function RootLayout({
@@ -36,6 +37,7 @@ export default function RootLayout({
       lang="en"
       className={`${instrument.variable} h-full antialiased`}
     >
+      {/* 2. Added 'font-sans' to the body to ensure the font variable is used by default */}
       <body className="min-h-full flex flex-col selection:bg-black selection:text-white font-sans">
         {children}
       </body>

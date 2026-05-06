@@ -13,7 +13,7 @@
   --shadow-vendra-soft: 0 8px 30px rgba(0, 0, 0, 0.04);
   --shadow-vendra-float: 0 20px 40px rgba(0, 0, 0, 0.08);
 
-  /* Typography - Linking to the Instrument Sans variable */
+  /* Typography - v4 variable connection */
   --font-sans: var(--font-instrument), ui-sans-serif, system-ui;
   
   /* Layout Spacing */
@@ -24,10 +24,9 @@
   background-color: var(--color-vendra-paper);
   color: var(--color-vendra-black);
   
-  /* Applying the font globally */
-  font-family: var(--font-instrument);
+  /* Critical: Applying the variable globally */
+  font-family: var(--font-instrument), sans-serif;
   
-  /* Anti-blocky settings: lighter weight and better spacing */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   
@@ -35,41 +34,51 @@
   line-height: 1.6;
 }
 
-/* Headings: Editorial & Elegant */
+/* Headings: Editorial & Sharp */
 h1, h2, h3, h4 {
-  font-weight: 700; /* Bold is often cleaner than ExtraBold for non-blocky looks */
+  font-weight: 700; 
   letter-spacing: -0.03em;
   line-height: 1.1;
+  /* Removes the blocky feel by balancing width */
+  font-stretch: 95%; 
 }
 
-/* Labels: Spaced out & Sophisticated */
+/* Luxury Labels: Prada-style spacing */
 .tracking-widest {
-  letter-spacing: 0.25em !important; 
-  font-weight: 500 !important; /* Medium weight is the secret to high-end labels */
+  letter-spacing: 0.3em !important; 
+  font-weight: 500 !important; 
   text-transform: uppercase;
 }
 
-/* Big Titles: Tight but not clumped */
+/* Smooth Titles */
 .tracking-tighter {
   letter-spacing: -0.04em !important; 
 }
 
-/* Paragraphs: Breathable */
+/* Readability */
 p {
   margin-bottom: 1.5rem;
-  line-height: 1.8; /* Higher leading prevents the 'wall of text' look */
-  opacity: 0.9;     /* Slight transparency makes the black look less harsh */
+  line-height: 1.8;
+  opacity: 0.85; /* Slightly softer for a premium ink-on-paper look */
 }
 
-/* Images: The Boutique Filter */
+/* THE BOUTIQUE FILTER */
 img {
   filter: contrast(1.02) brightness(0.96) saturate(0.95);
-  transition: transform 0.4s cubic-bezier(0.2, 0, 0.2, 1);
+  transition: all 0.4s cubic-bezier(0.2, 0, 0.2, 1);
   border-radius: inherit;
 }
 
-/* Selection: Custom Branded */
+/* Selection */
 ::selection {
   background: var(--color-vendra-black);
   color: #ffffff;
+}
+
+/* Fix for the Fixed Button logic on Desktop */
+@media (min-width: 1024px) {
+  .fixed-center-content {
+    left: calc(50% + 8rem); /* Offsets the 64-unit (16rem) sidebar */
+    transform: translateX(-50%);
+  }
 }

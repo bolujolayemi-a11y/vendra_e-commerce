@@ -1,12 +1,19 @@
 import type { Metadata, Viewport } from "next";
-import { Instrument_Sans } from "next/font/google"; 
+import { Instrument_Sans, Playfair_Display } from "next/font/google"; 
 import "./globals.css";
 
-// 1. Configure the font with the variable name
 const instrument = Instrument_Sans({
   subsets: ["latin"],
   display: 'swap',
-  variable: "--font-instrument", // This must match your globals.css
+  variable: "--font-instrument",
+});
+
+// Configure Playfair Display Semi-Bold (600)
+const playfair = Playfair_Display({
+  subsets: ["latin"],
+  display: 'swap',
+  weight: "600",
+  variable: "--font-playfair",
 });
 
 export const metadata: Metadata = {
@@ -35,9 +42,8 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${instrument.variable} h-full antialiased`}
+      className={`${instrument.variable} ${playfair.variable} h-full antialiased`}
     >
-      {/* 2. Added 'font-sans' to the body to ensure the font variable is used by default */}
       <body className="min-h-full flex flex-col selection:bg-black selection:text-white font-sans">
         {children}
       </body>

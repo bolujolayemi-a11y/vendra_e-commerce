@@ -1,22 +1,22 @@
 @import "tailwindcss";
 
 @theme {
-  /* Premium Palette */
-  --color-vendra-black: #1a1a1a;
-  --color-vendra-paper: #fbfbf9;
-  --color-vendra-sand: #f4f4f0;
-  --color-vendra-border: #eeeeee;
-  --color-vendra-accent: #d4af37;
-  --color-vendra-success: #25d366;
+  /* Editorial Palette */
+  --color-vendra-black: #0a0a0a;
+  --color-vendra-paper: #ffffff;
+  --color-vendra-sand: #f8f8f5;
+  --color-vendra-border: #f0f0f0;
+  --color-vendra-accent: #b8964b; /* Brushing Gold */
+  --color-vendra-success: #075e54;
 
   /* Depth */
-  --shadow-vendra-soft: 0 8px 30px rgba(0, 0, 0, 0.04);
-  --shadow-vendra-float: 0 20px 40px rgba(0, 0, 0, 0.08);
+  --shadow-vendra-soft: 0 4px 20px rgba(0, 0, 0, 0.03);
+  --shadow-vendra-float: 0 30px 60px rgba(0, 0, 0, 0.12);
 
-  /* Typography - v4 variable connection */
+  /* Typography - Added Playfair (Serif) */
   --font-sans: var(--font-instrument), ui-sans-serif, system-ui;
+  --font-serif: var(--font-playfair), ui-serif, Georgia, serif;
   
-  /* Layout Spacing */
   --spacing-vendra-gate: 4rem;
 }
 
@@ -24,7 +24,7 @@
   background-color: var(--color-vendra-paper);
   color: var(--color-vendra-black);
   
-  /* Critical: Applying the variable globally */
+  /* Body uses the clean Sans font */
   font-family: var(--font-instrument), sans-serif;
   
   -webkit-font-smoothing: antialiased;
@@ -34,51 +34,52 @@
   line-height: 1.6;
 }
 
-/* Headings: Editorial & Sharp */
-h1, h2, h3, h4 {
-  font-weight: 700; 
-  letter-spacing: -0.03em;
-  line-height: 1.1;
-  /* Removes the blocky feel by balancing width */
-  font-stretch: 95%; 
+/* Headings: The "Vogue" Look (Playfair Display) */
+h1, h2, h3 {
+  font-family: var(--font-playfair), serif;
+  font-weight: 600; /* Semi-Bold */
+  letter-spacing: -0.01em; /* Serifs need more breathing room than Sans */
+  line-height: 1.15;
+  font-stretch: 100%; /* Reset stretch for Serif fonts */
 }
 
-/* Luxury Labels: Prada-style spacing */
-.tracking-widest {
+/* Subheadings / Labels: Keep Sans for contrast */
+h4, h5, .tracking-widest {
+  font-family: var(--font-instrument), sans-serif;
   letter-spacing: 0.3em !important; 
   font-weight: 500 !important; 
   text-transform: uppercase;
 }
 
-/* Smooth Titles */
+/* Editorial Tighter Spacing for Serif Headlines */
 .tracking-tighter {
   letter-spacing: -0.04em !important; 
 }
 
-/* Readability */
+/* Body Text: High-end Readability */
 p {
   margin-bottom: 1.5rem;
   line-height: 1.8;
-  opacity: 0.85; /* Slightly softer for a premium ink-on-paper look */
+  opacity: 0.8; /* Softer ink look */
 }
 
-/* THE BOUTIQUE FILTER */
+/* Image Treatment: Luxury Catalogue Filter */
 img {
-  filter: contrast(1.02) brightness(0.96) saturate(0.95);
-  transition: all 0.4s cubic-bezier(0.2, 0, 0.2, 1);
+  filter: contrast(1.05) brightness(0.98);
+  transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
   border-radius: inherit;
 }
 
-/* Selection */
+/* Premium Selection */
 ::selection {
   background: var(--color-vendra-black);
   color: #ffffff;
 }
 
-/* Fix for the Fixed Button logic on Desktop */
+/* Desktop Sidebar Offset for Fixed Buttons */
 @media (min-width: 1024px) {
   .fixed-center-content {
-    left: calc(50% + 8rem); /* Offsets the 64-unit (16rem) sidebar */
+    left: calc(50% + 8rem); 
     transform: translateX(-50%);
   }
 }

@@ -1,9 +1,22 @@
 @import "tailwindcss";
 
 @theme {
-  /* The "Shopify" Black */
+  /* The "Ink" Black */
   --color-vendra-black: #1a1a1a;
-  --color-vendra-gray: #f6f6f6;
+  
+  /* Premium Neutrals */
+  --color-vendra-paper: #fbfbf9;   /* Warm off-white for backgrounds */
+  --color-vendra-sand: #f4f4f0;    /* For secondary sections/cards */
+  --color-vendra-border: #eeeeee;
+  
+  /* Accents (Use sparingly for a "Pop") */
+  --color-vendra-accent: #d4af37;  /* Muted Gold for 'Featured' badges */
+  --color-vendra-success: #25d366; /* WhatsApp Green */
+
+  /* Depth */
+  --shadow-vendra-soft: 0 8px 30px rgba(0, 0, 0, 0.04);
+  --shadow-vendra-float: 0 20px 40px rgba(0, 0, 0, 0.08);
+
   
   /* Typography */
   --font-sans: "Inter", ui-sans-serif, system-ui;
@@ -13,6 +26,19 @@
 }
 
 :root {
-  background: white;
+  background-color: var(--color-vendra-paper);
   color: var(--color-vendra-black);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Make images look premium */
+img {
+  filter: contrast(1.02) brightness(0.98);
+  transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Selection color - The "Boutique" feel */
+::selection {
+  background: var(--color-vendra-black);
+  color: white;
 }

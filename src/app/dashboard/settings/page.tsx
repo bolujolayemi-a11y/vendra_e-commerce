@@ -197,9 +197,9 @@ export default function SettingsPage() {
               </label>
             </div>
             <div className="text-center md:text-left space-y-2">
-              <p className="font-black uppercase text-xs tracking-widest text-black">Boutique Logo</p>
+              <p className="font-black uppercase text-xs tracking-widest text-black">Store Logo</p>
               <p className="text-gray-400 text-[10px] font-bold uppercase leading-relaxed max-w-[240px]">
-                Square images (500x500px) work best. PNG or JPG supported.
+                Square images (500x500px) work best. JPEG, PNG or JPG supported.
               </p>
             </div>
           </div>
